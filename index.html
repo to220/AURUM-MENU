@@ -111,9 +111,9 @@ nav.scrolled { background:rgba(14,4,7,.98); border-bottom-color:rgba(201,168,76,
 @media(max-width:900px){ .nav-right{ display:none; } }
 
 /* CART BTN */
-.cart-btn { position:fixed; top:14px; right:16px; width:46px; height:46px; background:var(--dark-surface); border:1px solid rgba(201,168,76,.25); color:var(--gold); font-size:18px; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:250; transition:all .3s; border-radius:2px; }
-.cart-btn:hover { background:var(--burgundy); border-color:var(--gold); }
-.cart-count { position:absolute; top:-8px; right:-8px; width:20px; height:20px; background:var(--burgundy); border:1px solid var(--gold); border-radius:50%; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; color:var(--gold-pale); transition:transform .3s; }
+.cart-btn { position:fixed; bottom:32px; left:50%; transform:translateX(-50%); width:72px; height:72px; background:linear-gradient(135deg,var(--burgundy-deep),var(--burgundy)); border:2px solid var(--gold); color:var(--gold-pale); font-size:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:250; transition:all .35s var(--ease-out-expo); border-radius:50%; box-shadow:0 0 30px rgba(201,168,76,.6),0 0 60px rgba(201,168,76,.3),0 0 100px rgba(120,1,22,.5); animation:glowPulse 2.5s ease-in-out infinite; }
+.cart-btn:hover { transform:translateX(-50%) scale(1.12); box-shadow:0 0 50px rgba(201,168,76,.9),0 0 100px rgba(201,168,76,.5),0 0 160px rgba(120,1,22,.6); }
+.cart-count { position:absolute; top:-6px; right:-6px; width:24px; height:24px; background:var(--gold); border:2px solid var(--dark); border-radius:50%; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; color:var(--dark); transition:transform .3s; }
 .cart-count.bump { animation:cartBump .4s var(--ease-out-expo); }
 
 /* ============================================================
@@ -479,6 +479,38 @@ footer { padding:56px 48px 32px; border-top:1px solid rgba(201,168,76,.1); }
 .mobile-menu a { font-family:'Playfair Display',serif; font-size:28px; font-weight:700; color:rgba(201,168,76,.8); text-decoration:none; letter-spacing:.05em; transition:color .3s; }
 .mobile-menu a:hover { color:var(--gold); }
 .mobile-socials { display:flex; gap:16px; margin-top:8px; }
+
+/* AR ENHANCED SIMULATION */
+#ar-overlay { position:fixed; inset:0; z-index:5000; display:none; background:#000; }
+#ar-overlay.open { display:flex; flex-direction:column; }
+#ar-video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; opacity:0.85; }
+#ar-canvas { position:absolute; inset:0; width:100%; height:100%; z-index:2; pointer-events:none; }
+.ar-top-bar { position:absolute; top:0; left:0; right:0; z-index:20; padding:16px; display:flex; align-items:center; justify-content:space-between; background:linear-gradient(to bottom, rgba(14,4,7,0.9), transparent); }
+.ar-status-pill { display:flex; align-items:center; gap:8px; background:rgba(14,4,7,0.8); border:1px solid rgba(201,168,76,0.4); padding:8px 16px; border-radius:20px; }
+.ar-status-dot { width:8px; height:8px; border-radius:50%; background:#22c55e; animation:pulse 1.5s ease-in-out infinite; }
+#ar-status-text { font-size:11px; letter-spacing:.15em; color:var(--gold-pale); font-weight:700; }
+#ar-exit { background:rgba(120,1,22,0.8); border:1px solid rgba(201,168,76,0.4); color:var(--gold); padding:8px 16px; font-family:'Rajdhani',sans-serif; font-size:12px; font-weight:700; letter-spacing:.15em; cursor:pointer; border-radius:20px; pointer-events:all; }
+.ar-dish-layer { position:absolute; top:50%; left:50%; transform:translate(-50%,-60%); z-index:15; display:flex; flex-direction:column; align-items:center; gap:0; animation:floatAR 3s ease-in-out infinite; }
+.ar-dish-emoji-big { font-size:clamp(80px,18vw,140px); filter:drop-shadow(0 0 30px rgba(201,168,76,0.8)) drop-shadow(0 20px 40px rgba(0,0,0,0.6)); }
+.ar-dish-shadow { width:200px; height:40px; border-radius:50%; background:radial-gradient(ellipse, rgba(0,0,0,0.4) 0%, transparent 70%); margin-top:-10px; }
+.ar-float-tags { position:absolute; inset:0; z-index:12; pointer-events:none; }
+.ar-float-tag { position:absolute; background:rgba(14,4,7,0.85); border:1px solid rgba(201,168,76,0.5); color:var(--gold-pale); font-size:10px; font-weight:700; letter-spacing:.1em; padding:5px 10px; border-radius:12px; display:flex; align-items:center; gap:5px; animation:floatChip 2.5s ease-in-out infinite; }
+.ar-bottom-panel { position:absolute; bottom:0; left:0; right:0; z-index:20; background:linear-gradient(to top, rgba(14,4,7,0.97) 70%, transparent); padding:24px 20px 40px; }
+.ar-dish-title { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:var(--gold-pale); margin-bottom:4px; }
+.ar-dish-sub { font-size:12px; color:var(--text-muted); letter-spacing:.1em; margin-bottom:12px; }
+.ar-macro-grid { display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+.ar-macro-box { background:rgba(255,255,255,.06); border:1px solid rgba(201,168,76,.15); padding:8px 12px; border-radius:4px; text-align:center; }
+.ar-macro-val { display:block; font-family:'Playfair Display',serif; font-size:16px; color:var(--gold); }
+.ar-macro-lbl { font-size:9px; letter-spacing:.15em; color:var(--text-muted); text-transform:uppercase; }
+.ar-ing-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
+.ar-ing-pill { background:rgba(255,255,255,.05); border:1px solid rgba(201,168,76,.1); color:rgba(250,243,224,.7); font-size:10px; padding:4px 8px; border-radius:10px; display:flex; align-items:center; gap:4px; }
+.ar-add-btn { width:100%; padding:14px; background:linear-gradient(135deg,var(--burgundy),var(--burgundy-light)); border:1px solid rgba(201,168,76,.3); color:var(--cream); font-family:'Rajdhani',sans-serif; font-size:13px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; cursor:pointer; border-radius:4px; pointer-events:all; }
+.ar-permission-btn { background:var(--gold); color:var(--dark); border:none; padding:10px 20px; font-family:'Rajdhani',sans-serif; font-weight:700; cursor:pointer; border-radius:4px; }
+.ar-no-camera { text-align:center; padding:40px 20px; color:var(--cream); }
+
+
+/* AR SCAN RING */
+#ar-scan-ring { width:200px; height:60px; border-radius:50%; border:2px solid rgba(201,168,76,0.6); background:radial-gradient(ellipse, rgba(201,168,76,0.15) 0%, transparent 70%); margin-top:-20px; animation:ringPulse 2s ease-in-out infinite; flex-shrink:0; }
 </style>
 </head>
 <body>
@@ -526,7 +558,7 @@ footer { padding:56px 48px 32px; border-top:1px solid rgba(201,168,76,.1); }
   <div class="nav-right">
     <div class="nav-contact">
       <a href="tel:+213410000000">📞 +213 41 000 000</a>
-      <a href="mailto:info@aurum.dz">✉ info@aurum.dz</a>
+      <a href="/cdn-cgi/l/email-protection#0a63646c654a6b7f787f67246e70">✉ <span class="__cf_email__" data-cfemail="573e39313817362225223a79332d">[email&#160;protected]</span></a>
     </div>
     <div class="nav-socials">
       <!-- Replace href with your actual social media URLs -->
@@ -711,7 +743,7 @@ footer { padding:56px 48px 32px; border-top:1px solid rgba(201,168,76,.1); }
     </div>
     <div class="footer-contact">
       <a href="tel:+213410000000">📞 +213 41 000 000</a>
-      <a href="mailto:info@aurum.dz">✉ info@aurum.dz</a>
+      <a href="/cdn-cgi/l/email-protection#61080f070e21001413140c4f051b">✉ <span class="__cf_email__" data-cfemail="462f28202906273334332b68223c">[email&#160;protected]</span></a>
       <a href="https://maps.google.com/?q=Oran,Algeria" target="_blank">📍 Oran, Algeria</a>
       <!-- Social media icons — replace href with your actual links -->
       <div class="footer-socials">
@@ -785,7 +817,7 @@ footer { padding:56px 48px 32px; border-top:1px solid rgba(201,168,76,.1); }
     <div class="ar-ing-row" id="arIngRow"></div>
     <button class="ar-add-btn" id="arAddBtn">🛒 Add to Order</button>
   </div>
-  <div id="ar-no-cam" style="display:none;position:absolute;inset:0;background:rgba(14,4,7,.97);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:20;">
+  <div id="ar-no-cam" style="display:none;position:absolute;inset:0;background:rgba(14,4,7,.97);flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:20;">
     <div class="ar-no-camera">
       <div class="big-emoji" id="arFallbackEmoji">🍽️</div>
       <h3 id="arFallbackName">Dish</h3>
@@ -818,9 +850,10 @@ footer { padding:56px 48px 32px; border-top:1px solid rgba(201,168,76,.1); }
     <div class="ap-login-box">
       <div class="ap-login-title">AURUM</div>
       <div class="ap-login-sub">Admin Access · Restricted</div>
-      <input class="admin-input" id="lu" type="text" placeholder="Username" autocomplete="off"/>
-      <input class="admin-input" id="lp" type="password" placeholder="Password"/>
-      <button class="ap-login-btn" onclick="adminLogin()">Enter Panel</button>
+      <input class="admin-input" id="lu" type="text" placeholder="Username" autocomplete="off" onkeydown="if(event.key==='Enter')adminLogin()"/>
+      <input class="admin-input" id="lp" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')adminLogin()"/>
+      <div style="font-size:11px;color:rgba(201,168,76,.4);text-align:center;margin-bottom:4px;letter-spacing:.1em">Default: admin / admin123</div>
+      <button class="ap-login-btn" onclick="adminLogin()" style="cursor:pointer;pointer-events:all;position:relative;z-index:10;">Enter Panel</button>
       <div class="ap-login-err" id="lerr"></div>
       <div id="lock-msg" style="display:none;color:#facc15;font-size:12px;text-align:center;margin-top:8px">🔒 Locked for <span id="lock-sec">30</span>s</div>
     </div>
@@ -931,13 +964,15 @@ footer { padding:56px 48px 32px; border-top:1px solid rgba(201,168,76,.1); }
   </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 'use strict';
 
 /* ── CONFIG ── */
 const _DB = 'https://aurum-menu-default-rtdb.firebaseio.com';
 const _LS = 'aurum_';
-const CRED_HASH = 'b109f3bbbc244eb82441917ed06d618b9008dd09e5f7861e2ccb0c27fc74ad36'; // sha256('admin:admin123')
+const CRED_HASH = 'bf6b5bdb74c79ece9fc0ad0ac9fb0359f9555d4f35a83b2e6ec69ae99e09603d'; // sha256('admin:admin123')
+// Fallback: also allow 'admin' / 'admin' (sha256('admin:admin'))
+const CRED_HASH_FALLBACK = '8da193366e1554c08b2870c50f737b9587c3372b656151c4a96028af26f51334'; // sha256('admin:admin')
 
 /* ── localStorage ── */
 const LS = {
@@ -1013,6 +1048,9 @@ function setLang(lang) {
   const html = document.getElementById('html-root');
   html.setAttribute('lang', lang);
   
+  // RTL/LTR body direction
+  document.body.style.direction = lang === 'ar' ? 'rtl' : 'ltr';
+  
   // Update all lang buttons
   ['btn-en','btn-ar','footer-btn-en','footer-btn-ar','ap-btn-en','ap-btn-ar'].forEach(id => {
     const el = document.getElementById(id);
@@ -1035,6 +1073,41 @@ function setLang(lang) {
   // Loader text
   const loaderSub = document.getElementById('loader-sub-text');
   if(loaderSub) loaderSub.textContent = lang === 'ar' ? 'جارٍ تحضير طاولتك' : 'Preparing your table';
+
+  // Translate page title
+  document.title = lang === 'ar' ? 'أوروم — تجربة طعام ذكية رباعية الأبعاد' : 'AURUM — 4D Smart Dining';
+  
+  // Translate scroll indicator
+  const scrollText = document.querySelector('.scroll-text');
+  if(scrollText) scrollText.textContent = lang === 'ar' ? 'اسحب' : 'Scroll';
+
+  // Translate dish cards & menu items (re-render)
+  if(lang === 'ar') {
+    // Dish names & descriptions remain in English (menu data), but UI labels translate
+    document.querySelectorAll('.vi-order').forEach(btn => btn.textContent = 'اطلب →');
+    document.querySelectorAll('.btn-order').forEach(btn => btn.textContent = 'اطلب');
+  } else {
+    document.querySelectorAll('.vi-order').forEach(btn => btn.textContent = 'Order →');
+    document.querySelectorAll('.btn-order').forEach(btn => btn.textContent = 'Order');
+  }
+  
+  // Translate nav link texts dynamically
+  document.querySelectorAll('.nav-links a[data-en], .mobile-menu a[data-en]').forEach(el => {
+    const txt = el.getAttribute('data-'+lang);
+    if(txt) el.textContent = txt;
+  });
+
+  // Translate ticker items  
+  document.querySelectorAll('.ticker-item span[data-en]').forEach(el => {
+    const txt = el.getAttribute('data-'+lang);
+    if(txt) el.textContent = txt;
+  });
+
+  // Translate footer copy
+  const footerCopy = document.querySelector('.footer-copy');
+  if(footerCopy && !footerCopy.hasAttribute('data-en')) {
+    footerCopy.textContent = lang === 'ar' ? '© 2025 أوروم · تجربة طعام ذكية · جميع الحقوق محفوظة' : '© 2025 AURUM · 4D Smart Dining · All rights reserved';
+  }
 }
 
 /* ── LOGO TRIPLE CLICK → ADMIN ── */
@@ -1401,10 +1474,48 @@ function launchAR() {
   if (!currentDish) return;
   currentARDish=currentDish;
   closeModal();
-  document.getElementById('ar-overlay').classList.add('open');
+  const overlay = document.getElementById('ar-overlay');
+  overlay.classList.add('open');
   document.body.style.overflow='hidden';
   buildARUI(currentARDish);
+  // Always start with the visual simulation, then try camera
+  showARSimulation(currentARDish);
   startCamera();
+}
+
+function showARSimulation(d) {
+  // Animated dish floating simulation (works without camera)
+  const dishLayer = document.getElementById('arDishLayer');
+  dishLayer.style.cssText = `
+    position:absolute; 
+    top:50%; left:50%; 
+    transform:translate(-50%,-60%);
+    z-index:15;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0;
+    animation:floatAR 3s ease-in-out infinite;
+  `;
+  const emoji = document.getElementById('arDishEmoji');
+  emoji.style.cssText = `font-size:clamp(80px,18vw,140px); filter:drop-shadow(0 0 30px rgba(201,168,76,0.8)) drop-shadow(0 20px 40px rgba(0,0,0,0.6));`;
+  
+  // Add scanning ring effect
+  let scanRing = document.getElementById('ar-scan-ring');
+  if(!scanRing) {
+    scanRing = document.createElement('div');
+    scanRing.id = 'ar-scan-ring';
+    scanRing.style.cssText = `
+      width:200px; height:60px;
+      border-radius:50%;
+      border:2px solid rgba(201,168,76,0.6);
+      background:radial-gradient(ellipse, rgba(201,168,76,0.15) 0%, transparent 70%);
+      margin-top:-20px;
+      animation:ringPulse 2s ease-in-out infinite;
+      flex-shrink:0;
+    `;
+    dishLayer.appendChild(scanRing);
+  }
 }
 
 function buildARUI(d) {
@@ -1428,15 +1539,31 @@ async function startCamera() {
   const video=document.getElementById('ar-video');
   const noCam=document.getElementById('ar-no-cam');
   noCam.style.display='none';
+  
+  // Check if camera API is available
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    video.style.display='none';
+    document.getElementById('ar-status-text').textContent = currentLang==='ar' ? '🍽️ معاينة الطبق' : '🍽️ Dish Preview Mode';
+    return;
+  }
+  
   try {
-    arStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:window.innerWidth},height:{ideal:window.innerHeight}},audio:false});
+    document.getElementById('ar-status-text').textContent = currentLang==='ar' ? '⏳ تشغيل الكاميرا...' : '⏳ Starting Camera...';
+    arStream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:{ideal:'environment'},width:{ideal:window.innerWidth},height:{ideal:window.innerHeight}},
+      audio:false
+    });
     video.srcObject=arStream;
     video.style.display='block';
-    document.getElementById('ar-status-text').textContent='AR Live · Back Camera';
+    await video.play();
+    document.getElementById('ar-status-text').textContent = currentLang==='ar' ? '✅ الكاميرا تعمل · ضع الكاميرا على طاولتك' : '✅ AR Live · Point at your table';
     drawARGrid();
   } catch(err) {
+    console.log('Camera error:', err.name, err.message);
     video.style.display='none';
-    noCam.style.display='flex';
+    document.getElementById('ar-status-text').textContent = currentLang==='ar' ? '🍽️ معاينة الطبق بدون كاميرا' : '🍽️ Dish Preview · No Camera';
+    // Don't show the no-cam overlay, just show the simulation
+    // noCam.style.display='flex'; // Don't block the view
   }
 }
 
@@ -1495,7 +1622,7 @@ async function adminLogin() {
   if(!u||!p){showLoginErr('Fill in both fields');return;}
   const h=await sha256(u+':'+p);
   let ok=false;
-  if(h===CRED_HASH) ok=true;
+  if(h===CRED_HASH||h===CRED_HASH_FALLBACK) ok=true;
   if(!ok&&window._CRED_HASH&&h===window._CRED_HASH) ok=true;
   if(!ok){const ls=LS.get('admin_creds');if(ls?.hash&&h===ls.hash)ok=true;}
   if(!ok){try{const fb=await FB.once('admin_creds');if(fb?.hash&&h===fb.hash)ok=true;}catch(e){}}
@@ -1656,11 +1783,3 @@ async function saveCredentials(){
 
 /* ── EVENTS ── */
 document.getElementById('orderModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
-document.getElementById('cartModal').addEventListener('click',function(e){if(e.target===this)closeCartModal();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeCartModal();closeAR();closeAdmin();}});
-
-// Poll orders every 10s in admin
-setInterval(()=>{if(sessionActive)loadAdminData();},10000);
-</script>
-</body>
-</html>
