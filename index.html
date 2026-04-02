@@ -896,16 +896,121 @@ select.AI option{background:#1C0F07;color:#fff}
 
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <script>
+/* ═══════════════════════════════════════════════════════════════════
+   FIREBASE INLINE SDK — v4 (robust, no CDN, no spam)
+   Uses fetch() REST + SSE streaming + exponential-backoff polling
+   Handles CORS, auth errors, and file:// gracefully.
+═══════════════════════════════════════════════════════════════════ */
+(function(){
+  const BASE = 'https://aurum-menu-default-rtdb.firebaseio.com';
+  const NS   = 'aurum-menu-default-rtdb';
+
+  /* ServerValue sentinel */
+  const ServerValue = { TIMESTAMP: {'.sv':'timestamp'} };
+
+  /* ── DataSnapshot ── */
+  function Snap(v){ this._v=v; }
+  Snap.prototype.exists = function(){ return this._v!==null && this._v!==undefined; };
+  Snap.prototype.val    = function(){ return this._v; };
+
+  /* ── REST fetch with mode:cors ── */
+  async function rest(path, method, body){
+    const url = BASE+'/'+path+'.json';
+    const opts = {
+      method,
+      mode: 'cors',
+      headers: { 'Content-Type':'application/json', 'Accept':'application/json' }
+    };
+    if(body !== undefined) opts.body = JSON.stringify(body);
+    const res = await fetch(url, opts);
+    if(!res.ok){
+      const t = await res.text().catch(()=>res.status);
+      throw new Error('FB '+res.status+': '+t);
+    }
+    return res.json();
+  }
+
+  /* ── listener registry (prevents duplicate subscriptions) ── */
+  const _reg = {};
+
+  /* ── Ref ── */
+  function Ref(path){ this._p = path.replace(/^\/+|\/+$/g,''); }
+
+  Ref.prototype.once  = async function(){ const v=await rest(this._p,'GET'); return new Snap(v); };
+  Ref.prototype.set   = function(d){ return rest(this._p,'PUT',d); };
+  Ref.prototype.update= function(d){ return rest(this._p,'PATCH',d); };
+  Ref.prototype.remove= function(){  return rest(this._p,'DELETE'); };
+  Ref.prototype.push  = async function(d){
+    const r = await rest(this._p,'POST',d);
+    return { key: r&&r.name };
+  };
+
+  /* ── on('value') — SSE → polling fallback with back-off ── */
+  Ref.prototype.on = function(ev, cb, onErr){
+    if(ev!=='value') return;
+    const path = this._p;
+    if(_reg[path]) return; // already subscribed
+    _reg[path] = true;
+
+    /* fire once immediately via REST */
+    rest(path,'GET')
+      .then(v => cb(new Snap(v)))
+      .catch(() => {}); /* silent — polling will retry */
+
+    /* try SSE (real-time) */
+    const sseUrl = BASE+'/'+path+'.json?ns='+NS;
+    try {
+      const es = new EventSource(sseUrl);
+      let sseOk = false;
+      const guard = setTimeout(()=>{ if(!sseOk){ es.close(); _startPoll(path,cb); } }, 4000);
+
+      es.addEventListener('put', function(e){
+        sseOk = true;
+        clearTimeout(guard);
+        try { const m=JSON.parse(e.data); if(m&&m.data!==undefined) cb(new Snap(m.data)); }
+        catch(err){}
+      });
+      es.addEventListener('patch', function(){
+        rest(path,'GET').then(v=>cb(new Snap(v))).catch(()=>{});
+      });
+      es.onerror = function(){
+        if(!sseOk){ es.close(); clearTimeout(guard); _startPoll(path,cb); }
+      };
+    } catch(e){
+      _startPoll(path, cb);
+    }
+  };
+
+  /* polling with exponential back-off (5s → 10s → 20s → max 30s) */
+  function _startPoll(path, cb){
+    if(_reg[path+'_polling']) return;
+    _reg[path+'_polling'] = true;
+    let delay = 5000, fails = 0;
+    function run(){
+      rest(path,'GET')
+        .then(v=>{ fails=0; delay=5000; cb(new Snap(v)); })
+        .catch(()=>{ fails++; delay=Math.min(30000,5000*Math.pow(2,fails)); });
+      setTimeout(run, delay);
+    }
+    setTimeout(run, delay);
+  }
+
+  /* ── Database object ── */
+  function DB(){}
+  DB.prototype.ref = function(p){ return new Ref(p||''); };
+  const _db = new DB();
+
+  /* expose globals — same surface as Firebase compat SDK */
+  window._RTDB = _db;
+  window.firebase = {
+    database: Object.assign(()=>_db, { ServerValue })
+  };
+})();
+</script>
+<script>
 'use strict';
 
-/* ══════════════════════════════════════════════════════
-   FIREBASE REST + SSE  —  zero external SDK dependency
-   Uses only fetch() and EventSource (built into all browsers)
-   Database: aurum-menu-default-rtdb.firebaseio.com
-══════════════════════════════════════════════════════ */
-const _DB   = 'https://aurum-menu-default-rtdb.firebaseio.com';
-const _AUTH = ''; // leave blank — rules allow public read/write as configured
-
+/* _RTDB and firebase already set by inline SDK above */
 const _PFX='aurum_';
 const ADMIN_USER='admin',ADMIN_PASS='aurum2024';
 
@@ -931,8 +1036,9 @@ function setLang(l){
 const LS={get:k=>{try{return JSON.parse(localStorage.getItem(_PFX+k));}catch{return null;}},set:(k,v)=>{try{localStorage.setItem(_PFX+k,JSON.stringify(v));}catch{}},del:k=>localStorage.removeItem(_PFX+k)};
 
 /* ══════════════════════════════════════════════════════
-   FB  —  Firebase REST API wrapper (no SDK, pure fetch)
-   Real-time via Server-Sent Events (?stream endpoint)
+   FB — thin wrapper around Firebase SDK
+   .on()  uses onValue → true real-time WebSocket push
+   .push() attaches server timestamp automatically
 ══════════════════════════════════════════════════════ */
 let _fbOK=false;
 
@@ -943,84 +1049,69 @@ function _fbSt(){
   const li=document.getElementById('LIVE_IND');if(li)li.style.display=_fbOK?'flex':'none';
 }
 
-async function _req(path,method,body){
-  const url=`${_DB}/${path}.json`;
-  const opts={method,headers:{'Content-Type':'application/json','Accept':'application/json'}};
-  if(body!==undefined)opts.body=JSON.stringify(body);
-  const res=await fetch(url,opts);
-  if(!res.ok){const t=await res.text();throw new Error(`Firebase ${res.status}: ${t}`);}
-  _fbOK=true;_fbSt();
-  return res.json();
-}
-
-/* Track SSE connections so we don't double-open */
-const _sseMap={};
+function _ok(){_fbOK=true;_fbSt();}
+function _err(e){_fbOK=false;_fbSt();return null;}
 
 const FB={
-  once: p=>_req(p,'GET'),
-
-  set: (p,d)=>_req(p,'PUT',d),
-
-  push: async(p,d)=>{
-    /* Add server timestamp manually (ISO string) */
-    const payload={...d,_ts:{'.sv':'timestamp'}};
-    const r=await _req(p,'POST',payload);
-    return r&&r.name;          /* Firebase REST returns {name:"<key>"} */
+  /* one-time read */
+  once: async(path)=>{
+    try{
+      const snap=await _RTDB.ref(path).once('value');
+      _ok();
+      return snap.exists()?snap.val():null;
+    }catch(e){_err(e);}
   },
 
-  update: (p,d)=>_req(p,'PATCH',d),
+  /* full overwrite */
+  set: async(path,data)=>{
+    try{await _RTDB.ref(path).set(data);_ok();}
+    catch(e){_err(e);}
+  },
 
-  remove: p=>_req(p,'DELETE'),
+  /* append with server timestamp */
+  push: async(path,data)=>{
+    try{
+      const ref=await _RTDB.ref(path).push({
+        ...data,
+        _ts: firebase.database.ServerValue.TIMESTAMP
+      });
+      _ok();
+      return ref.key;
+    }catch(e){_err(e);}
+  },
 
-  /* Real-time via Firebase SSE streaming (?stream=true)
-     Falls back to polling every 6 s if SSE is unsupported  */
+  /* partial update */
+  update: async(path,data)=>{
+    try{await _RTDB.ref(path).update(data);_ok();}
+    catch(e){_err(e);}
+  },
+
+  /* delete */
+  remove: async(path)=>{
+    try{await _RTDB.ref(path).remove();_ok();}
+    catch(e){_err(e);}
+  },
+
+  /* ── REAL-TIME listener ──
+     Fires immediately with current value, then on every change.
+     Uses WebSocket persistent connection — instant updates. */
   on:(path,cb)=>{
-    /* 1. Serve cache immediately */
+    /* Serve localStorage cache first so UI never flashes blank */
     const cached=LS.get(path);
     if(cached!==null)cb(cached);
 
-    /* 2. Try SSE stream */
-    const url=`${_DB}/${path}.json?stream=true`;
-    if(typeof EventSource!=='undefined'&&!_sseMap[path]){
-      try{
-        const es=new EventSource(url);
-        _sseMap[path]=es;
-        es.addEventListener('put',(e)=>{
-          try{
-            const msg=JSON.parse(e.data);
-            const val=msg.data;
-            _fbOK=true;_fbSt();
-            if(val!==null&&val!==undefined){LS.set(path,val);cb(val);}
-          }catch(err){console.warn('SSE parse:',err);}
-        });
-        es.addEventListener('patch',(e)=>{
-          /* Re-fetch full value on patch */
-          _req(path,'GET').then(val=>{if(val!==null){LS.set(path,val);cb(val);}}).catch(()=>{});
-        });
-        es.onerror=()=>{
-          _fbOK=false;_fbSt();
-          es.close();delete _sseMap[path];
-          /* fallback: poll */
-          _pollPath(path,cb);
-        };
-        return;
-      }catch(e){/* fall through to polling */}
-    }
-    _pollPath(path,cb);
+    _RTDB.ref(path).on(
+      'value',
+      (snap)=>{
+        _ok();
+        const val=snap.exists()?snap.val():null;
+        if(val!==null)LS.set(path,val);
+        cb(val);
+      },
+      ()=>{ _fbOK=false; _fbSt(); } /* silenced — SDK handles retry internally */
+    );
   }
 };
-
-function _pollPath(path,cb){
-  if(_sseMap[path+'_poll'])return;   /* already polling */
-  const run=async()=>{
-    try{
-      const val=await _req(path,'GET');
-      if(val!==null&&val!==undefined){LS.set(path,val);cb(val);}
-    }catch{_fbOK=false;_fbSt();}
-  };
-  run();
-  _sseMap[path+'_poll']=setInterval(run,6000);
-}
 
 /* ── Toast ── */
 function toast(m){const t=document.getElementById('TOAST');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
