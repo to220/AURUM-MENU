@@ -129,27 +129,42 @@ nav{position:sticky;top:37px;z-index:600;padding:13px 24px;display:flex;align-it
 .DIV{height:1px;background:linear-gradient(90deg,transparent,var(--G),rgba(120,1,22,.4),transparent);margin:0 22px;opacity:.32}
 .FIU{opacity:0;transform:translateY(24px);transition:opacity .7s var(--EO),transform .7s var(--EO)}
 .FIU.vis{opacity:1;transform:translateY(0)}
-/* CATEGORY PILLS */
-.CATSEC{padding:62px 0 0}
-.CSCR{display:flex;gap:11px;padding:0 22px 22px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
-.CSCR::-webkit-scrollbar{height:2px}.CSCR::-webkit-scrollbar-thumb{background:var(--G)}
-.CPL{flex-shrink:0;scroll-snap-align:start;padding:9px 22px;border:1px solid rgba(201,168,76,.22);background:transparent;color:rgba(201,168,76,.56);font-size:11px;font-weight:700;letter-spacing:.17em;text-transform:uppercase;transition:all .3s;white-space:nowrap;position:relative;overflow:hidden;border-radius:2px}
-.CPL::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--B),var(--BL));opacity:0;transition:opacity .3s}
-.CPL:hover,.CPL.on{color:var(--GP);border-color:var(--G)}.CPL:hover::before,.CPL.on::before{opacity:1}
-.CPL span{position:relative;z-index:1}
-/* CAROUSEL */
+/* ═══════════════════════════════════════════════
+   JUST-FOOD LAYOUT — AURUM PALETTE
+   Carousel → 3-col card grid + left sidebar filter
+═══════════════════════════════════════════════ */
+
+/* ── Category image carousel (Just-Food style) ── */
+.CATSEC{padding:52px 0 0}
+.CSCR{display:flex;gap:0;padding:0;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.CSCR::-webkit-scrollbar{display:none}
+/* Each item: image fills card, name below — exactly like Just-Food */
+.CPL{flex-shrink:0;scroll-snap-align:start;width:calc(20% - 1px);min-width:180px;background:var(--D3);border-right:1px solid rgba(201,168,76,.07);border-bottom:1px solid rgba(201,168,76,.07);cursor:pointer;position:relative;overflow:hidden;transition:background .25s}
+.CPL:hover{background:var(--D2)}
+.CPL.on{background:var(--D2)}
+.CPL.on::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--G)}
+/* Image fills the card — same proportion as Just-Food */
+.CPL_IMG{width:100%;aspect-ratio:4/3;overflow:hidden;position:relative;background:var(--D2);display:flex;align-items:center;justify-content:center}
+.CPL_IMG img{width:100%;height:100%;object-fit:cover;transition:transform .5s var(--EO)}
+.CPL:hover .CPL_IMG img,.CPL.on .CPL_IMG img{transform:scale(1.06)}
+.CPL_EMO{font-size:56px;line-height:1}
+/* Name label below image */
+.CPL_LBL{display:block;padding:10px 14px 14px;font-family:'Playfair Display',serif;font-size:13px;font-weight:600;color:rgba(250,243,224,.6);text-align:center;transition:color .25s;letter-spacing:.04em}
+.CPL:hover .CPL_LBL,.CPL.on .CPL_LBL{color:var(--G)}
+
+/* ── Auto-scroll carousel (features) ── */
 .CRSSEC{padding:50px 0;overflow:hidden}
 .ATRK{display:flex;gap:22px;padding:14px 22px;width:max-content;animation:AUTOSCR 30s linear infinite}
 .ATRK:hover{animation-play-state:paused}
-/* DISH CARD */
-.DC{flex-shrink:0;width:280px;background:var(--D3);border:1px solid rgba(201,168,76,.1);overflow:hidden;position:relative;transition:transform .5s var(--EO),border-color .3s,box-shadow .5s;border-radius:2px}
+/* Carousel cards (same as before) */
+.DC{flex-shrink:0;width:280px;background:var(--D3);border:1px solid rgba(201,168,76,.1);overflow:hidden;position:relative;transition:transform .5s var(--EO),border-color .3s,box-shadow .5s;border-radius:8px}
 .DC:hover{transform:translateY(-9px) scale(1.015);border-color:rgba(201,168,76,.36);box-shadow:0 30px 65px rgba(0,0,0,.55),0 0 32px rgba(120,1,22,.18)}
 .DIW{position:relative;overflow:hidden;background:var(--D2)}.DIW::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(10,3,6,.85),transparent 55%)}
 .DEM{width:100%;height:196px;display:flex;align-items:center;justify-content:center;font-size:86px;background:linear-gradient(135deg,var(--D2),var(--D3));overflow:hidden;position:relative}
 .DEM img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .DEM .dem_emo{position:relative;z-index:1;font-size:86px}
-.DBG{position:absolute;top:11px;left:11px;padding:3px 8px;background:var(--B);border:1px solid rgba(201,168,76,.28);font-size:8px;letter-spacing:.26em;text-transform:uppercase;color:var(--GP);font-weight:600;z-index:2;border-radius:2px}
-.DCL{position:absolute;top:11px;right:11px;padding:3px 8px;background:rgba(10,3,6,.85);border:1px solid rgba(201,168,76,.17);font-size:9px;font-weight:700;color:var(--G);z-index:2;backdrop-filter:blur(6px);border-radius:2px}
+.DBG{position:absolute;top:11px;left:11px;padding:3px 8px;background:var(--B);border:1px solid rgba(201,168,76,.28);font-size:8px;letter-spacing:.26em;text-transform:uppercase;color:var(--GP);font-weight:600;z-index:2;border-radius:30px}
+.DCL{position:absolute;top:11px;right:11px;padding:3px 8px;background:rgba(10,3,6,.85);border:1px solid rgba(201,168,76,.17);font-size:9px;font-weight:700;color:var(--G);z-index:2;backdrop-filter:blur(6px);border-radius:30px}
 .DIN{padding:16px}
 .DN{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:4px;line-height:1.2}
 .DD{font-family:'Cormorant Garamond',serif;font-size:12px;color:rgba(250,243,224,.46);line-height:1.5;margin-bottom:11px}
@@ -157,30 +172,82 @@ nav{position:sticky;top:37px;z-index:600;padding:13px 24px;display:flex;align-it
 .DT{padding:2px 7px;border:1px solid rgba(201,168,76,.17);font-size:8px;letter-spacing:.17em;text-transform:uppercase;color:var(--M);border-radius:20px}
 .DFT{display:flex;align-items:center;justify-content:space-between}
 .DPR{font-family:'Playfair Display',serif;font-size:19px;color:var(--G)}
-.BOR{padding:7px 16px;background:var(--B);border:1px solid rgba(201,168,76,.2);color:var(--GP);font-size:10px;font-weight:700;letter-spacing:.17em;text-transform:uppercase;transition:all .3s;border-radius:2px}
+.BOR{padding:7px 16px;background:var(--B);border:1px solid rgba(201,168,76,.2);color:var(--GP);font-size:10px;font-weight:700;letter-spacing:.17em;text-transform:uppercase;transition:all .3s;border-radius:30px}
 .BOR:hover{background:var(--G);color:var(--D);border-color:var(--G)}
 .NS{display:flex;height:3px;margin:9px 0;overflow:hidden;border-radius:2px}
 .NB{flex:1}.NP{background:linear-gradient(90deg,#C9A84C,#8B6914)}.NC{background:linear-gradient(90deg,#780116,#A01428)}.NF{background:linear-gradient(90deg,#3D0A0F,#780116)}.NFb{background:linear-gradient(90deg,#8B6914,#C9A84C)}
-/* VERTICAL LIST */
-.MSEC{padding:78px 22px}
-.VIL{display:flex;flex-direction:column;gap:2px}
-.VI{display:flex;align-items:center;gap:16px;padding:19px 22px;background:var(--D3);border:1px solid rgba(201,168,76,.07);position:relative;overflow:hidden;opacity:0;transform:translateX(-30px);transition:all .4s var(--EQ);cursor:pointer}
-.VI.vis{opacity:1;transform:translateX(0)}
-.VI::before{content:'';position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(135deg,var(--B),var(--BL));transition:width .4s var(--EQ)}
-.VI:hover::before{width:4px}.VI:hover{background:rgba(120,1,22,.13);border-color:rgba(201,168,76,.2)}
-.VIN{font-family:'Playfair Display',serif;font-size:30px;font-weight:900;color:rgba(201,168,76,.12);min-width:42px;transition:color .3s}
-.VI:hover .VIN{color:rgba(201,168,76,.36)}
-.VIE{font-size:38px;flex-shrink:0;width:48px;height:48px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%;background:var(--D2)}
-.VIE img{width:100%;height:100%;object-fit:cover;border-radius:50%}
-.VIC{flex:1;min-width:0}
-.VINM{font-family:'Playfair Display',serif;font-size:19px;font-weight:700}
-.VIDS{font-family:'Cormorant Garamond',serif;font-size:13px;color:rgba(250,243,224,.45);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.VIR{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
-.VIPR{font-family:'Playfair Display',serif;font-size:21px;color:var(--G)}
-.VICL{font-size:10px;letter-spacing:.13em;color:var(--M)}
-.VIOB{padding:6px 15px;background:transparent;border:1px solid rgba(201,168,76,.26);color:var(--G);font-size:10px;font-weight:700;letter-spacing:.17em;text-transform:uppercase;transition:all .3s;border-radius:2px}
-.VIOB:hover{background:var(--B);border-color:var(--BL);color:var(--GP)}
-@media(max-width:540px){.VI{padding:13px;gap:9px}.VIN{display:none}}
+
+/* ═══════════════════════════════════════
+   MENU SECTION — Just-Food 3-col + sidebar
+═══════════════════════════════════════ */
+.MSEC{padding:60px 0}
+/* Outer flex: sidebar LEFT + grid RIGHT (mirrors Just-Food) */
+.MENU_WRAP{display:flex;gap:0;align-items:flex-start;max-width:1400px;margin:0 auto;padding:0 24px}
+@media(max-width:900px){.MENU_WRAP{flex-direction:column}}
+
+/* ── Left Sidebar Filter (Just-Food Filter panel) ── */
+.MENU_SIDEBAR{width:240px;flex-shrink:0;background:var(--D3);border:1px solid rgba(201,168,76,.1);border-radius:12px;padding:22px 18px;position:sticky;top:88px;align-self:flex-start;margin-right:24px}
+@media(max-width:900px){.MENU_SIDEBAR{width:100%;position:static;margin-right:0;margin-bottom:20px;border-radius:8px}}
+.MSDB_TIT{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--G);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid rgba(201,168,76,.12)}
+/* Search input in sidebar */
+.MSDB_SRCH{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.13);border-radius:8px;padding:8px 12px;margin-bottom:16px;transition:border-color .3s}
+.MSDB_SRCH:focus-within{border-color:rgba(201,168,76,.4)}
+.MSDB_SRCH input{background:none;border:none;outline:none;color:var(--C);font-family:'Rajdhani',sans-serif;font-size:12px;flex:1;min-width:0}
+.MSDB_SRCH input::placeholder{color:rgba(201,168,76,.3)}
+/* Category checkboxes (Just-Food Filter style) */
+.MSDB_ROW{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:background .2s;margin-bottom:3px}
+.MSDB_ROW:hover{background:rgba(201,168,76,.06)}
+.MSDB_ROW.active{background:rgba(120,1,22,.2)}
+.MSDB_CB{width:18px;height:18px;border:1.5px solid rgba(201,168,76,.3);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;background:transparent}
+.MSDB_ROW.active .MSDB_CB{background:var(--G);border-color:var(--G)}
+.MSDB_CB_TICK{color:var(--D);font-size:11px;font-weight:900;display:none}
+.MSDB_ROW.active .MSDB_CB_TICK{display:block}
+.MSDB_LBL{font-size:12px;font-weight:600;color:rgba(250,243,224,.55);letter-spacing:.06em;transition:color .2s;flex:1}
+.MSDB_ROW.active .MSDB_LBL,.MSDB_ROW:hover .MSDB_LBL{color:var(--G)}
+.MSDB_MORE{width:100%;padding:8px;background:none;border:1px solid rgba(201,168,76,.15);color:rgba(201,168,76,.5);font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;border-radius:8px;cursor:pointer;margin-top:8px;transition:all .3s}
+.MSDB_MORE:hover{border-color:var(--G);color:var(--G);background:rgba(201,168,76,.05)}
+
+/* ── Card Grid (Just-Food 3-col) ── */
+.MENU_GRID_WRAP{flex:1;min-width:0}
+.VIL{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:1100px){.VIL{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.VIL{grid-template-columns:repeat(1,1fr);gap:14px}}
+
+/* ── Card (Just-Food white card → AURUM dark) ── */
+.VI{background:var(--D3);border:1px solid rgba(201,168,76,.09);border-radius:12px;overflow:hidden;opacity:0;transform:translateY(22px);transition:opacity .55s var(--EQ),transform .55s var(--EQ),box-shadow .3s,border-color .3s;cursor:pointer;display:flex;flex-direction:column}
+.VI.vis{opacity:1;transform:translateY(0)}
+.VI:hover{box-shadow:0 18px 55px rgba(0,0,0,.55),0 0 0 1px rgba(201,168,76,.25);border-color:rgba(201,168,76,.25);transform:translateY(-6px)}
+/* Card image — Just-Food uses w-full h-40 object-cover */
+.VIE{width:100%;height:180px;overflow:hidden;position:relative;background:var(--D2);flex-shrink:0}
+.VIE img{width:100%;height:100%;object-fit:cover;transition:transform .5s var(--EO);display:block}
+.VIE .vie_emo{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:72px}
+.VI:hover .VIE img{transform:scale(1.07)}
+/* Overlays on image */
+.VI_BADGE{position:absolute;top:10px;left:10px;padding:3px 10px;background:var(--B);border:1px solid rgba(201,168,76,.3);font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--GP);border-radius:30px;z-index:2}
+.VI_CAL{position:absolute;top:10px;right:10px;padding:3px 9px;background:rgba(10,3,6,.82);border:1px solid rgba(201,168,76,.2);font-size:9px;font-weight:700;color:var(--G);border-radius:30px;backdrop-filter:blur(6px);z-index:2}
+/* Card body */
+.VIC{padding:16px 18px 18px;flex:1;display:flex;flex-direction:column}
+.VINM{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:5px;line-height:1.25;color:var(--C)}
+.VIDS{font-family:'Cormorant Garamond',serif;font-size:12px;color:rgba(250,243,224,.42);line-height:1.55;margin-bottom:11px;flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* Nutrition bar */
+.VI_NB{display:flex;height:3px;border-radius:3px;overflow:hidden;margin-bottom:13px;gap:2px}
+.VI_NB span{border-radius:3px}
+/* Price + CTA row */
+.VIR{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto}
+.VIPR{font-family:'Playfair Display',serif;font-size:19px;color:var(--G);font-weight:700}
+.VIOB{padding:7px 18px;background:var(--B);border:1px solid rgba(201,168,76,.2);color:var(--GP);font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;transition:all .3s;border-radius:30px;white-space:nowrap}
+.VIOB:hover{background:var(--G);color:var(--D);border-color:var(--G)}
+
+/* Pagination (Just-Food style) */
+.MPAGN{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:36px;flex-wrap:wrap}
+.MPAG_BTN{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid rgba(201,168,76,.2);background:var(--D3);color:rgba(250,243,224,.5);transition:all .3s;letter-spacing:.05em}
+.MPAG_BTN:hover:not(:disabled){background:var(--B);border-color:var(--G);color:var(--GP)}
+.MPAG_BTN.active{background:var(--G);border-color:var(--G);color:var(--D)}
+.MPAG_BTN:disabled{opacity:.3;cursor:not-allowed}
+.MPAG_PREV,.MPAG_NEXT{padding:8px 20px;background:rgba(120,1,22,.5);border-color:rgba(120,1,22,.4);color:var(--GP)}
+.MPAG_PREV:hover:not(:disabled),.MPAG_NEXT:hover:not(:disabled){background:var(--BL)}
+/* Empty state */
+.MENU_EMPTY{text-align:center;padding:60px 0;color:rgba(201,168,76,.3);font-family:'Cormorant Garamond',serif;font-size:20px;grid-column:1/-1}
 /* MODAL */
 .MOV{position:fixed;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(16px);z-index:700;display:none;align-items:center;justify-content:center;padding:12px}
 .MOV.open{display:flex}
@@ -471,28 +538,67 @@ select.AI option{background:#1C0F07;color:#fff}
 
 <div class="TKR"><div class="TKT" id="TKT"></div></div>
 
+<!-- ── Category image carousel (Just-Food style) ── -->
 <section class="CATSEC">
-  <div class="SH FIU"><div class="DLINE"></div><p class="STAG" data-i18n="ct_tag">Browse by Desire</p><h2 class="STIT"><em data-i18n="ct_h">Collections</em></h2></div>
+  <div class="SH FIU" style="padding:0 24px;margin-bottom:18px">
+    <div class="DLINE"></div>
+    <p class="STAG" data-i18n="ct_tag">Browse by Desire</p>
+    <h2 class="STIT"><em data-i18n="ct_h">Collections</em></h2>
+  </div>
   <div class="CSCR" id="CPILLS"></div>
 </section>
 
+<!-- ── Auto-scroll feature carousel ── -->
 <section class="CRSSEC">
-  <div class="SH FIU" style="margin-bottom:18px"><p class="STAG" data-i18n="fe_tag">Tonight's Features</p><h2 class="STIT"><em data-i18n="fe_h">Scroll</em> <span data-i18n="fe_h2">to Discover</span></h2></div>
+  <div class="SH FIU" style="padding:0 24px;margin-bottom:18px">
+    <p class="STAG" data-i18n="fe_tag">Tonight's Features</p>
+    <h2 class="STIT"><em data-i18n="fe_h">Scroll</em> <span data-i18n="fe_h2">to Discover</span></h2>
+  </div>
   <div style="overflow:hidden"><div class="ATRK" id="ATRK"></div></div>
 </section>
 
 <div class="DIV"></div>
 
+<!-- ── Main Menu: sidebar filter + 3-col card grid ── -->
 <section class="MSEC" id="MENU">
-  <div class="SH FIU"><div class="DLINE"></div><p class="STAG" data-i18n="mn_tag">The Full Experience</p><h2 class="STIT" data-i18n="mn_h">Tonight's <em>Menu</em></h2></div>
-  <div class="VIL" id="VIL"></div>
+  <div class="SH FIU" style="padding:0 24px;margin-bottom:28px">
+    <div class="DLINE"></div>
+    <p class="STAG" data-i18n="mn_tag">The Full Experience</p>
+    <h2 class="STIT" data-i18n="mn_h">Tonight's <em>Menu</em></h2>
+  </div>
+
+  <div class="MENU_WRAP">
+    <!-- LEFT: Filter sidebar (Just-Food Filter component) -->
+    <aside class="MENU_SIDEBAR" id="MENU_SIDEBAR">
+      <div class="MSDB_TIT">Category</div>
+      <div class="MSDB_SRCH">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(201,168,76,.5)" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="MENU_SEARCH" placeholder="Search dishes…" oninput="menuSearch(this.value)">
+      </div>
+      <div id="SIDEBAR_CATS"></div>
+      <button class="MSDB_MORE" id="SIDEBAR_MORE" onclick="toggleSidebarMore()" style="display:none">more</button>
+    </aside>
+
+    <!-- RIGHT: card grid + pagination -->
+    <div class="MENU_GRID_WRAP">
+      <div class="VIL" id="VIL">
+        <div class="MENU_EMPTY" id="MENU_EMPTY" style="display:none">No dishes found</div>
+      </div>
+      <div class="MPAGN" id="MPAGN"></div>
+    </div>
+  </div>
 </section>
 
 <div class="DIV"></div>
 
+<!-- ── Chef's Table specials ── -->
 <section class="SPCS" id="SPCS">
-  <div class="SH FIU" style="padding:0;margin-bottom:0"><div class="DLINE"></div><p class="STAG" data-i18n="sp_tag">Chef Signatures</p><h2 class="STIT" data-i18n="sp_h">Curated <em>for Tonight</em></h2></div>
-  <div class="MGR" id="SPGR"></div>
+  <div class="SH FIU" style="padding:0 24px;margin-bottom:0">
+    <div class="DLINE"></div>
+    <p class="STAG" data-i18n="sp_tag">Chef Signatures</p>
+    <h2 class="STIT" data-i18n="sp_h">Curated <em>for Tonight</em></h2>
+  </div>
+  <div class="MGR" id="SPGR" style="padding:0 24px"></div>
 </section>
 
 <footer id="FOOT">
@@ -791,7 +897,15 @@ select.AI option{background:#1C0F07;color:#fff}
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <script>
 'use strict';
-const _DB='https://aurum-dining-default-rtdb.firebaseio.com';
+
+/* ══════════════════════════════════════════════════════
+   FIREBASE REST + SSE  —  zero external SDK dependency
+   Uses only fetch() and EventSource (built into all browsers)
+   Database: aurum-menu-default-rtdb.firebaseio.com
+══════════════════════════════════════════════════════ */
+const _DB   = 'https://aurum-menu-default-rtdb.firebaseio.com';
+const _AUTH = ''; // leave blank — rules allow public read/write as configured
+
 const _PFX='aurum_';
 const ADMIN_USER='admin',ADMIN_PASS='aurum2024';
 
@@ -810,40 +924,102 @@ function setLang(l){
   const LD=LANG_DATA[l]||LANG_DATA.en;
   document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(LD[k]!==undefined)el.innerHTML=LD[k];});
   document.querySelectorAll('[data-i18n-ph]').forEach(el=>{const k=el.getAttribute('data-i18n-ph');if(LD[k])el.placeholder=LD[k];});
-  buildCPills();buildVIL();buildAutoTrack();buildSpecials();
+  buildCPills();buildVIL();buildAutoTrack();buildSpecials();buildSidebarCats();
 }
 
 /* ── LocalStorage ── */
 const LS={get:k=>{try{return JSON.parse(localStorage.getItem(_PFX+k));}catch{return null;}},set:(k,v)=>{try{localStorage.setItem(_PFX+k,JSON.stringify(v));}catch{}},del:k=>localStorage.removeItem(_PFX+k)};
 
-/* ── Firebase REST ── */
+/* ══════════════════════════════════════════════════════
+   FB  —  Firebase REST API wrapper (no SDK, pure fetch)
+   Real-time via Server-Sent Events (?stream endpoint)
+══════════════════════════════════════════════════════ */
 let _fbOK=false;
-async function _fb(path,method,body){
-  const opts={method,headers:{'Content-Type':'application/json'}};
-  if(body!==undefined)opts.body=JSON.stringify(body);
-  const res=await fetch(`${_DB}/${path}.json`,opts);
-  if(!res.ok)throw new Error(res.status);
-  _fbOK=true;_fbSt();return res.json();
+
+function _fbSt(){
+  const txt=_fbOK?'🟢 Firebase live':'🟡 Offline (local)';
+  const col=_fbOK?'#22C55E':'#FACC15';
+  ['FBS','FBS2'].forEach(id=>{const e=document.getElementById(id);if(e){e.textContent=txt;e.style.color=col;}});
+  const li=document.getElementById('LIVE_IND');if(li)li.style.display=_fbOK?'flex':'none';
 }
+
+async function _req(path,method,body){
+  const url=`${_DB}/${path}.json`;
+  const opts={method,headers:{'Content-Type':'application/json','Accept':'application/json'}};
+  if(body!==undefined)opts.body=JSON.stringify(body);
+  const res=await fetch(url,opts);
+  if(!res.ok){const t=await res.text();throw new Error(`Firebase ${res.status}: ${t}`);}
+  _fbOK=true;_fbSt();
+  return res.json();
+}
+
+/* Track SSE connections so we don't double-open */
+const _sseMap={};
+
 const FB={
-  once:p=>_fb(p,'GET'),
-  set:(p,d)=>_fb(p,'PUT',d),
-  push:(p,d)=>_fb(p,'POST',d),
-  update:(p,d)=>_fb(p,'PATCH',d),
-  remove:p=>_fb(p,'DELETE'),
-  on:(p,cb)=>{
-    const c=LS.get(p);if(c!==null)cb(c);
-    const run=async()=>{try{const d=await _fb(p,'GET');if(d!==null){LS.set(p,d);cb(d);}}catch{_fbOK=false;_fbSt();}};
-    run();return setInterval(run,8000);
+  once: p=>_req(p,'GET'),
+
+  set: (p,d)=>_req(p,'PUT',d),
+
+  push: async(p,d)=>{
+    /* Add server timestamp manually (ISO string) */
+    const payload={...d,_ts:{'.sv':'timestamp'}};
+    const r=await _req(p,'POST',payload);
+    return r&&r.name;          /* Firebase REST returns {name:"<key>"} */
+  },
+
+  update: (p,d)=>_req(p,'PATCH',d),
+
+  remove: p=>_req(p,'DELETE'),
+
+  /* Real-time via Firebase SSE streaming (?stream=true)
+     Falls back to polling every 6 s if SSE is unsupported  */
+  on:(path,cb)=>{
+    /* 1. Serve cache immediately */
+    const cached=LS.get(path);
+    if(cached!==null)cb(cached);
+
+    /* 2. Try SSE stream */
+    const url=`${_DB}/${path}.json?stream=true`;
+    if(typeof EventSource!=='undefined'&&!_sseMap[path]){
+      try{
+        const es=new EventSource(url);
+        _sseMap[path]=es;
+        es.addEventListener('put',(e)=>{
+          try{
+            const msg=JSON.parse(e.data);
+            const val=msg.data;
+            _fbOK=true;_fbSt();
+            if(val!==null&&val!==undefined){LS.set(path,val);cb(val);}
+          }catch(err){console.warn('SSE parse:',err);}
+        });
+        es.addEventListener('patch',(e)=>{
+          /* Re-fetch full value on patch */
+          _req(path,'GET').then(val=>{if(val!==null){LS.set(path,val);cb(val);}}).catch(()=>{});
+        });
+        es.onerror=()=>{
+          _fbOK=false;_fbSt();
+          es.close();delete _sseMap[path];
+          /* fallback: poll */
+          _pollPath(path,cb);
+        };
+        return;
+      }catch(e){/* fall through to polling */}
+    }
+    _pollPath(path,cb);
   }
 };
-function _fbSt(){
-  const e=document.getElementById('FBS');const e2=document.getElementById('FBS2');
-  const txt=_fbOK?'🟢 Firebase connected':'🟡 Offline (local)';
-  const col=_fbOK?'#22C55E':'#FACC15';
-  if(e){e.textContent=txt;e.style.color=col;}
-  if(e2){e2.textContent=txt;e2.style.color=col;}
-  const li=document.getElementById('LIVE_IND');if(li)li.style.display=_fbOK?'flex':'none';
+
+function _pollPath(path,cb){
+  if(_sseMap[path+'_poll'])return;   /* already polling */
+  const run=async()=>{
+    try{
+      const val=await _req(path,'GET');
+      if(val!==null&&val!==undefined){LS.set(path,val);cb(val);}
+    }catch{_fbOK=false;_fbSt();}
+  };
+  run();
+  _sseMap[path+'_poll']=setInterval(run,6000);
 }
 
 /* ── Toast ── */
@@ -904,7 +1080,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   buildTicker();buildCPills();
   setTimeout(()=>{
     document.getElementById('LDR').classList.add('gone');
-    loadAll();buildAutoTrack();buildVIL();buildSpecials();
+    loadAll();buildAutoTrack();buildVIL();buildSpecials();buildCPills();
     initSO();initCursor();updateCartBadge();
     document.getElementById('STN_DISHES').textContent=dishes.length;
     requestNotifPerm();
@@ -955,7 +1131,7 @@ function loadAll(){
 }
 
 function rebuildAll(){
-  buildAutoTrack();buildVIL();buildSpecials();
+  buildAutoTrack();buildVIL();buildSpecials();buildCPills();
   document.getElementById('STN_DISHES').textContent=dishes.length;
   if(sessionActive){
     document.getElementById('ST_D').textContent=dishes.length;
@@ -971,22 +1147,92 @@ function buildTicker(){
   document.getElementById('TKT').innerHTML=a.map(i=>`<div class="TI"><span class="TD"></span>${i}</div>`).join('');
 }
 
-/* ── Category Pills ── */
+/* ── Category image carousel (Just-Food style) ── */
+const CAT_EMOJI={'all':'✦','starters':'🥗','seafood':'🦞','grill':'🥩','vegan':'🌿','pasta':'🍝','dessert':'🍫','chef':'👨‍🍳'};
+
 function buildCPills(){
   const LD=LANG_DATA[curLang]||LANG_DATA.en;
-  document.getElementById('CPILLS').innerHTML=CATS.map(k=>`
-    <button class="CPL${k==='all'?' on':''}" onclick="fCat('${k}',this)"><span>${(LD.cats&&LD.cats[k])||k}</span></button>`).join('');
+  // Collect one image per category from dishes
+  const catImg={};
+  dishes.forEach(d=>{if(d.cat&&d.img&&!catImg[d.cat])catImg[d.cat]=d.img;});
+  document.getElementById('CPILLS').innerHTML=CATS.map(k=>{
+    const lbl=(LD.cats&&LD.cats[k])||k;
+    const img=catImg[k];
+    const inner=img
+      ?`<div class="CPL_IMG"><img src="${img}" alt="${lbl}" loading="lazy"></div>`
+      :`<div class="CPL_IMG"><span class="CPL_EMO">${CAT_EMOJI[k]||'🍽️'}</span></div>`;
+    return `<button class="CPL${k==='all'?' on':''}" onclick="fCat('${k}',this)" title="${lbl}">
+      ${inner}
+      <span class="CPL_LBL">${lbl}</span>
+    </button>`;
+  }).join('');
+}
+
+/* ── Sidebar category checkboxes ── */
+let _sidebarShowAll=false;
+let _activeCats=new Set(['all']);
+const SIDEBAR_LIMIT=5;
+
+function buildSidebarCats(){
+  const LD=LANG_DATA[curLang]||LANG_DATA.en;
+  const el=document.getElementById('SIDEBAR_CATS');
+  const more=document.getElementById('SIDEBAR_MORE');
+  if(!el)return;
+  const shown=_sidebarShowAll?CATS:CATS.slice(0,SIDEBAR_LIMIT);
+  el.innerHTML=shown.map(k=>{
+    const lbl=(LD.cats&&LD.cats[k])||k;
+    const active=_activeCats.has(k)||(_activeCats.has('all')&&k==='all');
+    return `<div class="MSDB_ROW${active?' active':''}" onclick="sidebarToggle('${k}',this)">
+      <div class="MSDB_CB"><span class="MSDB_CB_TICK">✓</span></div>
+      <span class="MSDB_LBL">${lbl}</span>
+    </div>`;
+  }).join('');
+  if(more){
+    more.style.display=CATS.length>SIDEBAR_LIMIT?'block':'none';
+    more.textContent=_sidebarShowAll?'less':'more';
+  }
+}
+
+function toggleSidebarMore(){
+  _sidebarShowAll=!_sidebarShowAll;
+  buildSidebarCats();
+}
+
+function sidebarToggle(cat,row){
+  if(cat==='all'){
+    _activeCats=new Set(['all']);
+  } else {
+    _activeCats.delete('all');
+    if(_activeCats.has(cat)) _activeCats.delete(cat);
+    else _activeCats.add(cat);
+    if(_activeCats.size===0) _activeCats.add('all');
+  }
+  buildSidebarCats();
+  // Sync top carousel
+  document.querySelectorAll('.CPL').forEach(p=>{
+    const k=p.getAttribute('onclick').match(/'([^']+)'/)?.[1];
+    p.classList.toggle('on', k&&(_activeCats.has(k)||(_activeCats.has('all')&&k==='all')));
+  });
+  _vilPage=1;
+  renderVILPage();
 }
 
 function fCat(cat,btn){
+  // Sync sidebar when carousel pill clicked
+  _activeCats=new Set([cat]);
+  buildSidebarCats();
   document.querySelectorAll('.CPL').forEach(p=>p.classList.remove('on'));
   if(btn)btn.classList.add('on');
-  document.querySelectorAll('.VI').forEach(v=>{
-    const ok=cat==='all'||v.dataset.cat===cat;
-    v.style.opacity=ok?'1':'0.14';
-    v.style.transform=ok?(v.classList.contains('vis')?'translateX(0)':''):'translateX(-8px)';
-  });
+  _vilPage=1;
+  renderVILPage();
 }
+
+function menuSearch(q){
+  _menuQ=(q||'').toLowerCase().trim();
+  _vilPage=1;
+  renderVILPage();
+}
+let _menuQ='';
 
 /* ── Auto Carousel ── */
 function buildAutoTrack(){
@@ -1027,27 +1273,108 @@ function mkCard(d){
   return el;
 }
 
-/* ── Vertical List ── */
+/* ── Card Grid with pagination (Just-Food style) ── */
+const VIL_PER_PAGE=9;
+let _vilPage=1;
+
 function buildVIL(){
-  const list=document.getElementById('VIL');list.innerHTML='';
+  buildSidebarCats();
+  _vilPage=1;
+  renderVILPage();
+}
+
+function _getFilteredDishes(){
+  let list=dishes;
+  // Category filter
+  if(!_activeCats.has('all')){
+    list=list.filter(d=>_activeCats.has(d.cat));
+  }
+  // Text search
+  if(_menuQ){
+    list=list.filter(d=>{
+      const n=getDN(d).toLowerCase();
+      const desc=getDD(d).toLowerCase();
+      return n.includes(_menuQ)||desc.includes(_menuQ);
+    });
+  }
+  return list;
+}
+
+function renderVILPage(){
+  const list=document.getElementById('VIL');
+  if(!list)return;
   const LD=LANG_DATA[curLang]||LANG_DATA.en;
-  dishes.forEach((d,i)=>{
-    const el=document.createElement('div');el.className='VI';el.dataset.cat=d.cat;el.dataset.id=d.id;
-    el.style.transitionDelay=(i*.06)+'s';
+  const filtered=_getFilteredDishes();
+  const total=filtered.length;
+  const totalPages=Math.max(1,Math.ceil(total/VIL_PER_PAGE));
+  if(_vilPage>totalPages)_vilPage=totalPages;
+  const start=(_vilPage-1)*VIL_PER_PAGE;
+  const page=filtered.slice(start,start+VIL_PER_PAGE);
+
+  list.innerHTML='';
+
+  if(page.length===0){
+    list.innerHTML='<div class="MENU_EMPTY">No dishes found</div>';
+    buildPagination(0,1,1);
+    return;
+  }
+
+  page.forEach((d,i)=>{
+    const el=document.createElement('div');
+    el.className='VI';el.dataset.cat=d.cat;el.dataset.id=d.id;
+    el.style.transitionDelay=(i*.04)+'s';
     const img=getDImg(d);
+    const tot=(d.protein||0)+(d.carbs||0)+(d.fat||0)+(d.fiber||1);
     el.innerHTML=`
-      <div class="VIN">0${i+1}</div>
-      <div class="VIE">${img?`<img src="${img}" alt="${getDN(d)}">`:(d.emoji||'🍽️')}</div>
-      <div class="VIC"><div class="VINM">${getDN(d)}</div><div class="VIDS">${getDD(d).slice(0,72)}…</div></div>
-      <div class="VIR">
-        <div class="VIPR">DZD ${Number(d.price||0).toLocaleString()}</div>
-        <div class="VICL">🔥 ${d.cal||0} kcal</div>
-        <button class="VIOB" onclick="event.stopPropagation();openOM('${d.id}')">${LD.order_btn||'Order'} →</button>
+      <div class="VIE">
+        ${img?`<img src="${img}" alt="${getDN(d)}" loading="lazy">`:`<div class="vie_emo">${d.emoji||'🍽️'}</div>`}
+        <div class="VI_BADGE">${d.badge||'Special'}</div>
+        <div class="VI_CAL">🔥 ${d.cal||0} kcal</div>
+      </div>
+      <div class="VIC">
+        <div class="VINM">${getDN(d)}</div>
+        <div class="VIDS">${getDD(d)}</div>
+        <div class="VI_NB">
+          <span style="flex:${d.protein||1};background:linear-gradient(90deg,#C9A84C,#8B6914)"></span>
+          <span style="flex:${d.carbs||1};background:linear-gradient(90deg,#780116,#A01428)"></span>
+          <span style="flex:${d.fat||1};background:linear-gradient(90deg,#3D0A0F,#780116)"></span>
+          <span style="flex:${d.fiber||1};background:linear-gradient(90deg,#8B6914,#C9A84C)"></span>
+        </div>
+        <div class="VIR">
+          <div class="VIPR">DZD ${Number(d.price||0).toLocaleString()}</div>
+          <button class="VIOB" onclick="event.stopPropagation();openOM('${d.id}')">${LD.order_btn||'Order'}</button>
+        </div>
       </div>`;
     el.addEventListener('click',e=>{if(!e.target.matches('.VIOB'))openOM(d.id);});
     list.appendChild(el);
   });
-  setTimeout(()=>document.querySelectorAll('.VI').forEach(v=>SO.observe(v)),50);
+
+  buildPagination(total,_vilPage,totalPages);
+  setTimeout(()=>list.querySelectorAll('.VI').forEach(v=>SO&&SO.observe(v)),40);
+}
+
+function buildPagination(total,cur,totalPages){
+  const el=document.getElementById('MPAGN');if(!el)return;
+  if(totalPages<=1){el.innerHTML='';return;}
+  let h=`<button class="MPAG_BTN MPAG_PREV" onclick="vilGoPage(${cur-1})" ${cur===1?'disabled':''}>← Previous</button>`;
+  // Show max 7 page numbers, with ellipsis
+  const pages=[];
+  for(let i=1;i<=totalPages;i++){
+    if(i===1||i===totalPages||Math.abs(i-cur)<=2)pages.push(i);
+    else if(pages[pages.length-1]!=='…')pages.push('…');
+  }
+  pages.forEach(p=>{
+    if(p==='…')h+=`<span class="MPAG_BTN" style="cursor:default;opacity:.4">…</span>`;
+    else h+=`<button class="MPAG_BTN${p===cur?' active':''}" onclick="vilGoPage(${p})">${p}</button>`;
+  });
+  h+=`<button class="MPAG_BTN MPAG_NEXT" onclick="vilGoPage(${cur+1})" ${cur===totalPages?'disabled':''}>Next →</button>`;
+  el.innerHTML=h;
+}
+
+function vilGoPage(p){
+  _vilPage=p;
+  renderVILPage();
+  document.getElementById('MENU')?.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 /* ── Specials ── */
