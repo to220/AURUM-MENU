@@ -1359,13 +1359,13 @@ const TICKER_ITEMS=['Entrées','Produits Frais','Spécialités Grillées','Signa
 let cart=[],curDish=null,curQty=1,arStream=null,arDish=null;
 let sessionActive=false,loginAttempts=0,lockedUntil=0;
 let _ordFilter='all';
-// Persist known order keys in sessionStorage to prevent re-notification on page re-render
-const _knownOrderKeys=(()=>{
-  try{const s=sessionStorage.getItem('_aurumKnownOrds');return new Set(s?JSON.parse(s):[]);}catch{return new Set();}
-})();
-function _saveKnownKeys(){try{sessionStorage.setItem('_aurumKnownOrds',JSON.stringify([..._knownOrderKeys]));}catch{}}
 let _activeCat='all';
 let _capN1=0,_capN2=0,_capOK=false;
+let _allOrders=[];
+let _ordKeyMap={};
+let _calDate=new Date();
+let _selDate=new Date().toISOString().split('T')[0];
+let _datesWithOrders=new Set();
 
 /* ═══════════════════════════════════════════════════════════
    SOUND NOTIFICATIONS
@@ -1464,33 +1464,40 @@ document.addEventListener('DOMContentLoaded',()=>{
 /* ═══════════════════════════════════════════════════════════
    LOAD ALL DATA
 ═══════════════════════════════════════════════════════════ */
+// Timestamp of when admin logged in — notify for anything newer
+let _adminLoginTime=0;
+// Keys we've already notified about (never notify twice)
+const _notifiedKeys=new Set();
+
 function loadAll(){
   const cm=LS.get('menu');if(cm&&Array.isArray(cm)&&cm.length){dishes=cm;}
   FB.on('menu',d=>{if(d&&Array.isArray(d)&&d.length){dishes=d;LS.set('menu',d);rebuildAll();}});
   FB.on('settings',d=>{if(d){LS.set('settings',d);applySettings(d);}});
   const dk=new Date().toISOString().split('T')[0];
   FB.on('orders/'+dk,d=>{
-    if(!d)return;
-    // Build key map from live data
-    Object.entries(d).forEach(([k,v])=>{if(v&&v.timestamp)_ordKeyMap[v.timestamp]=k;});
-    const allOrders=Object.values(d).filter(Boolean);
-    _allOrders=allOrders; // always keep fresh cache
-    // Find truly new orders (not yet known)
-    let hasNew=false;
-    Object.entries(d).forEach(([k,o])=>{
-      if(!_knownOrderKeys.has(k)){
-        _knownOrderKeys.add(k);_saveKnownKeys();
-        hasNew=true;
-        if(sessionActive){
-          playNotifSound('order');
-          pushNotif('🛎 Nouvelle Commande!',`${o.name||'Client'}: ${(o.items||'').slice(0,60)}`,'urgent');
-        }
-      }
-    });
-    // Always update admin panel directly from this data — no extra fetch
+    if(!d||typeof d!=='object')return;
+    const entries=Object.entries(d).filter(([k,v])=>v&&typeof v==='object');
+    // Build key map for instant status updates
+    entries.forEach(([k,v])=>{if(v.timestamp)_ordKeyMap[v.timestamp]=k;});
+    const allOrders=entries.map(([,v])=>v);
+    _allOrders=allOrders;
+    // Update admin panel display
     if(sessionActive){
       updStats(allOrders);
       renderDAdmOrders(allOrders);
+      // Notify for orders that arrived after admin logged in
+      entries.forEach(([k,o])=>{
+        if(_notifiedKeys.has(k))return;
+        const orderTime=o.timestamp?new Date(o.timestamp).getTime():0;
+        if(orderTime>=_adminLoginTime){
+          _notifiedKeys.add(k);
+          playNotifSound('order');
+          pushNotif('🛎 Nouvelle Commande!',`${o.name||'Client'} — ${(o.items||'').slice(0,50)}`,'urgent');
+        }else{
+          // Mark old orders as already notified so we don't notify on next SSE fire
+          _notifiedKeys.add(k);
+        }
+      });
     }
   });
 }
@@ -2159,15 +2166,24 @@ function showDash(){
   document.getElementById('APLOG').style.display='none';
   document.getElementById('APD').classList.add('show');
   sessionActive=true;
+  // Record exact login time — only notify for orders AFTER this moment
+  _adminLoginTime=Date.now();
+  // Mark all currently known orders as already-notified (don't alert on old ones)
+  _notifiedKeys.clear();
+  _allOrders.forEach(o=>{
+    const k=o.timestamp?_ordKeyMap[o.timestamp]:null;
+    if(k)_notifiedKeys.add(k);
+  });
+  // Also mark by iterating _ordKeyMap
+  Object.keys(_ordKeyMap).forEach(ts=>{_notifiedKeys.add(_ordKeyMap[ts]);});
+
   _calDate=new Date();_selDate=new Date().toISOString().split('T')[0];
   renderDAdm();
-  // Show cached orders instantly
   if(_allOrders.length){updStats(_allOrders);renderDAdmOrders(_allOrders);}
   else{updStats([]);renderDAdmOrders([]);}
   renderCal();
   const stD=document.getElementById('ST_D');if(stD)stD.textContent=dishes.length;
   const lbl=document.getElementById('DISH_COUNT_LBL');if(lbl)lbl.textContent=dishes.length;
-  // Fill settings
   const s=LS.get('settings')||{};
   ['S_PH','S_EM','S_ADR','S_HR','S_IG','S_FB','S_WA','S_MAP','S_MAP_DIRECT'].forEach(id=>{
     const key={S_PH:'phone',S_EM:'email',S_ADR:'address',S_HR:'hours',S_IG:'ig',S_FB:'fb',S_WA:'wa',S_MAP:'map_embed',S_MAP_DIRECT:'map_direct'}[id];
@@ -2177,7 +2193,6 @@ function showDash(){
   if(hero.t1){const e=document.getElementById('S_T1');if(e)e.value=hero.t1;}
   if(hero.t2){const e=document.getElementById('S_T2');if(e)e.value=hero.t2;}
   if(hero.sub){const e=document.getElementById('S_SUB');if(e)e.value=hero.sub;}
-  // Fresh fetch in background
   loadAdmOrders();
   loadCalendarDates();
 }
@@ -2226,11 +2241,6 @@ function updStats(os){
   if(badge)badge.innerHTML=pend>0?`<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;background:#ef4444;color:#fff;font-size:9px;font-weight:700;border-radius:50%;margin-left:5px">${pend}</span>`:'';
   renderDAdmOrders(os,'OV_ORDS',4);
 }
-
-let _allOrders=[];
-let _calDate=new Date();
-let _selDate=new Date().toISOString().split('T')[0];
-let _datesWithOrders=new Set();
 
 function renderDAdmOrders(os,containerId='ORDS_LIST',limit=999){
   _allOrders=os;
@@ -2348,9 +2358,7 @@ function filterOrders(f,btn){
   renderDAdmOrders(_allOrders);
 }
 
-// Map of timestamp → Firebase key for fast updates
-let _ordKeyMap={};
-
+// Fast timestamp→key lookup for order status updates
 async function updOrdSt(btn,ts,status){
   btn.disabled=true;btn.textContent='…';
   const dk=_selDate||new Date().toISOString().split('T')[0];
