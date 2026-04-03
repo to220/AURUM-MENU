@@ -1154,87 +1154,94 @@ select.AI option{background:#1C0F07;color:#fff}
     return res.json();
   }
 
-  // Cache of full node values per path (so patch events can merge)
-  const _cache={};
-  // Map of path → array of callbacks (support multiple listeners)
-  const _listeners={};
-  // Active SSE connections
-  const _sseActive={};
+  // Per-path: {val, cbs[], es}
+  const _nodes={};
 
-  function _fire(path,val){
-    _cache[path]=val;
-    (_listeners[path]||[]).forEach(cb=>{try{cb(new Snap(val));}catch(e){}});
+  function _getNode(path){
+    if(!_nodes[path])_nodes[path]={val:undefined,cbs:[],es:null};
+    return _nodes[path];
   }
 
-  function _fetch(path){
-    return rest(path,'GET').then(v=>{_fire(path,v);return v;}).catch(()=>null);
+  function _fire(path){
+    const n=_getNode(path);
+    n.cbs.forEach(cb=>{try{cb(new Snap(n.val));}catch(e){}});
+  }
+
+  // Set a value at a dotted keypath inside obj, returns NEW object (no mutation)
+  function _setIn(obj,parts,val){
+    if(!parts.length)return val;
+    const result=Object.assign({},obj||{});
+    result[parts[0]]=_setIn(result[parts[0]],parts.slice(1),val);
+    return result;
   }
 
   function _openSSE(path){
-    if(_sseActive[path])return;
-    _sseActive[path]=true;
-    let es,retryDelay=1000;
+    const n=_getNode(path);
+    if(n.es)return; // already open
+
+    let retryMs=1000;
 
     function connect(){
-      try{
-        es=new EventSource(BASE+'/'+path+'.json?ns='+NS);
-        let ready=false;
-        const timeout=setTimeout(()=>{
-          if(!ready){es.close();_sseActive[path]=false;connect();}
-        },6000);
+      let es;
+      try{es=new EventSource(BASE+'/'+path+'.json?ns='+NS);}
+      catch(e){setTimeout(connect,retryMs);retryMs=Math.min(retryMs*2,30000);return;}
 
-        // 'put' fires on initial load AND when a child is added/replaced
-        es.addEventListener('put',function(e){
-          clearTimeout(timeout);ready=true;retryDelay=1000;
-          try{
-            const m=JSON.parse(e.data);
-            // m.path tells us what changed; m.data is the new value at that path
-            if(m.path==='/'||m.path===''||m.path==null){
-              // Full replacement
-              _fire(path,m.data);
-            }else{
-              // Child change — merge into cached full value
-              const cur=_cache[path]||{};
-              const parts=m.path.replace(/^\//,'').split('/');
-              let obj=cur;
-              for(let i=0;i<parts.length-1;i++){
-                if(!obj[parts[i]])obj[parts[i]]={};
-                obj=obj[parts[i]];
+      n.es=es;
+      let gotFirst=false;
+      const firstTimeout=setTimeout(()=>{
+        if(!gotFirst){es.close();n.es=null;setTimeout(connect,retryMs);}
+      },6000);
+
+      es.addEventListener('put',function(e){
+        clearTimeout(firstTimeout);gotFirst=true;retryMs=1000;
+        try{
+          const m=JSON.parse(e.data);
+          const p=(m.path||'/').replace(/^\/+/,'');
+          if(!p){
+            // Full replacement
+            n.val=m.data;
+          }else{
+            // Child put — immutable merge
+            const parts=p.split('/').filter(Boolean);
+            n.val=_setIn(n.val,parts,m.data);
+          }
+          _fire(path);
+        }catch(err){}
+      });
+
+      es.addEventListener('patch',function(e){
+        try{
+          const m=JSON.parse(e.data);
+          const p=(m.path||'/').replace(/^\/+/,'');
+          const parts=p.split('/').filter(Boolean);
+          // Each key in m.data is a child update
+          if(m.data&&typeof m.data==='object'){
+            let cur=Object.assign({},n.val||{});
+            if(parts.length){
+              // Navigate to sub-object
+              let sub=cur;
+              for(let i=0;i<parts.length;i++){
+                sub[parts[i]]=Object.assign({},sub[parts[i]]||{});
+                if(i<parts.length-1)sub=sub[parts[i]];
+                else Object.assign(sub[parts[i]],m.data);
               }
-              obj[parts[parts.length-1]]=m.data;
-              _fire(path,cur);
+            }else{
+              Object.assign(cur,m.data);
             }
-          }catch(err){}
-        });
+            n.val=cur;
+            _fire(path);
+          }
+        }catch(err){}
+      });
 
-        // 'patch' fires on update() calls — merge changes
-        es.addEventListener('patch',function(e){
-          try{
-            const m=JSON.parse(e.data);
-            const cur=Object.assign({},_cache[path]||{});
-            if(m.data&&typeof m.data==='object'){
-              // Shallow merge at the changed path
-              const parts=(m.path||'/').replace(/^\//,'').split('/').filter(Boolean);
-              let obj=cur;
-              for(let i=0;i<parts.length-1;i++){if(!obj[parts[i]])obj[parts[i]]={};obj=obj[parts[i]];}
-              if(parts.length>0)Object.assign(obj[parts[parts.length-1]]||{},m.data);
-              else Object.assign(cur,m.data);
-            }
-            _fire(path,cur);
-          }catch(err){_fetch(path);}
-        });
-
-        es.onerror=function(){
-          es.close();_sseActive[path]=false;
-          setTimeout(connect,retryDelay);
-          retryDelay=Math.min(retryDelay*2,30000);
-        };
-      }catch(e){
-        _sseActive[path]=false;
-        setTimeout(connect,retryDelay);
-        retryDelay=Math.min(retryDelay*2,30000);
-      }
+      es.onerror=function(){
+        clearTimeout(firstTimeout);
+        es.close();n.es=null;
+        setTimeout(connect,retryMs);
+        retryMs=Math.min(retryMs*2,30000);
+      };
     }
+
     connect();
   }
 
@@ -1247,13 +1254,11 @@ select.AI option{background:#1C0F07;color:#fff}
   Ref.prototype.on=function(ev,cb){
     if(ev!=='value')return;
     const path=this._p;
-    if(!_listeners[path])_listeners[path]=[];
-    _listeners[path].push(cb);
-    // Fire immediately with cached value if available
-    if(_cache[path]!==undefined)cb(new Snap(_cache[path]));
-    // Initial fetch
-    _fetch(path);
-    // Open persistent SSE connection
+    const n=_getNode(path);
+    n.cbs.push(cb);
+    // Fire immediately with cached value if we have one
+    if(n.val!==undefined)cb(new Snap(n.val));
+    // Open SSE (no-op if already open)
     _openSSE(path);
   };
 
