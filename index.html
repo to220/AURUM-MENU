@@ -1473,6 +1473,7 @@ function loadAll(){
   const cm=LS.get('menu');if(cm&&Array.isArray(cm)&&cm.length){dishes=cm;}
   FB.on('menu',d=>{if(d&&Array.isArray(d)&&d.length){dishes=d;LS.set('menu',d);rebuildAll();}});
   FB.on('settings',d=>{if(d){LS.set('settings',d);applySettings(d);}});
+  FB.on('hero',d=>{if(d){LS.set('hero',d);applyHero(d);}});
   const dk=new Date().toISOString().split('T')[0];
   FB.on('orders/'+dk,d=>{
     if(!d||typeof d!=='object')return;
@@ -2501,9 +2502,12 @@ async function delDish(id){
 /* ─── SETTINGS ─── */
 async function saveSt(){
   const g=id=>(document.getElementById(id)||{}).value||'';
-  const s={phone:g('S_PH'),email:g('S_EM'),address:g('S_ADR'),hours:g('S_HR'),ig:g('S_IG'),fb:g('S_FB'),wa:g('S_WA')};
-  applySettings(s);LS.set('settings',Object.assign(LS.get('settings')||{},s));
-  try{await FB.update('settings',s);toast('✅ Coordonnées sauvegardées!');}
+  const s=Object.assign(LS.get('settings')||{},{
+    phone:g('S_PH'),email:g('S_EM'),address:g('S_ADR'),
+    hours:g('S_HR'),ig:g('S_IG'),fb:g('S_FB'),wa:g('S_WA')
+  });
+  applySettings(s);LS.set('settings',s);
+  try{await FB.set('settings',s);toast('✅ Coordonnées sauvegardées sur tous les appareils!');}
   catch{toast('✅ Sauvegardé localement!');}
 }
 
@@ -2514,24 +2518,25 @@ async function saveMap(){
   LS.set('settings',s);
   if(embed){const mf=document.getElementById('MAP_FRAME');if(mf)mf.src=embed;}
   if(direct){const mb=document.getElementById('MAP_LINK_BTN');if(mb)mb.href=direct;}
-  try{await FB.update('settings',{map_embed:embed,map_direct:direct});toast('✅ Carte mise à jour!');}
+  try{await FB.set('settings',s);toast('✅ Carte mise à jour sur tous les appareils!');}
   catch{toast('✅ Sauvegardé localement!');}
 }
 
 function uploadHeroImg(inp){
   if(!inp.files||!inp.files[0])return;
   const r=new FileReader();
-  r.onload=e=>{
+  r.onload=async e=>{
     const hero=Object.assign(LS.get('hero')||{},{img:e.target.result});
     LS.set('hero',hero);applyHero(hero);
     const prev=document.getElementById('HERO_UPL_PREV');
     if(prev){prev.classList.add('has-img');prev.innerHTML=`<img src="${e.target.result}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><div style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.6);color:#fff;font-size:10px;padding:3px 8px;border-radius:20px">Changer</div>`;}
-    toast('🖼 Image héro mise à jour!');
+    try{await FB.set('hero',hero);toast('🖼 Image héro synchronisée sur tous les appareils!');}
+    catch{toast('🖼 Image héro mise à jour localement!');}
   };
   r.readAsDataURL(inp.files[0]);
 }
 
-function saveHero(){
+async function saveHero(){
   const hero=Object.assign(LS.get('hero')||{},{
     t1:(document.getElementById('S_T1').value||'').trim(),
     t2:(document.getElementById('S_T2').value||'').trim(),
@@ -2540,7 +2545,8 @@ function saveHero(){
   const url=(document.getElementById('S_HERO_URL').value||'').trim();
   if(url)hero.img=url;
   LS.set('hero',hero);applyHero(hero);
-  toast('✅ Section héro mise à jour!');
+  try{await FB.set('hero',hero);toast('✅ Section héro mise à jour sur tous les appareils!');}
+  catch{toast('✅ Section héro mise à jour localement!');}
 }
 
 function saveCr(){
