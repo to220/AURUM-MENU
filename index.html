@@ -1140,18 +1140,104 @@ select.AI option{background:#1C0F07;color:#fff}
 (function(){
   const BASE='https://aurum-menu-default-rtdb.firebaseio.com';
   const NS='aurum-menu-default-rtdb';
+
   function Snap(v){this._v=v;}
   Snap.prototype.exists=function(){return this._v!==null&&this._v!==undefined;};
   Snap.prototype.val=function(){return this._v;};
+
   async function rest(path,method,body){
     const url=BASE+'/'+path+'.json';
     const opts={method,mode:'cors',headers:{'Content-Type':'application/json','Accept':'application/json'}};
     if(body!==undefined)opts.body=JSON.stringify(body);
     const res=await fetch(url,opts);
-    if(!res.ok){const t=await res.text().catch(()=>res.status);throw new Error('FB '+res.status+': '+t);}
+    if(!res.ok)throw new Error('FB '+res.status);
     return res.json();
   }
-  const _reg={};
+
+  // Cache of full node values per path (so patch events can merge)
+  const _cache={};
+  // Map of path → array of callbacks (support multiple listeners)
+  const _listeners={};
+  // Active SSE connections
+  const _sseActive={};
+
+  function _fire(path,val){
+    _cache[path]=val;
+    (_listeners[path]||[]).forEach(cb=>{try{cb(new Snap(val));}catch(e){}});
+  }
+
+  function _fetch(path){
+    return rest(path,'GET').then(v=>{_fire(path,v);return v;}).catch(()=>null);
+  }
+
+  function _openSSE(path){
+    if(_sseActive[path])return;
+    _sseActive[path]=true;
+    let es,retryDelay=1000;
+
+    function connect(){
+      try{
+        es=new EventSource(BASE+'/'+path+'.json?ns='+NS);
+        let ready=false;
+        const timeout=setTimeout(()=>{
+          if(!ready){es.close();_sseActive[path]=false;connect();}
+        },6000);
+
+        // 'put' fires on initial load AND when a child is added/replaced
+        es.addEventListener('put',function(e){
+          clearTimeout(timeout);ready=true;retryDelay=1000;
+          try{
+            const m=JSON.parse(e.data);
+            // m.path tells us what changed; m.data is the new value at that path
+            if(m.path==='/'||m.path===''||m.path==null){
+              // Full replacement
+              _fire(path,m.data);
+            }else{
+              // Child change — merge into cached full value
+              const cur=_cache[path]||{};
+              const parts=m.path.replace(/^\//,'').split('/');
+              let obj=cur;
+              for(let i=0;i<parts.length-1;i++){
+                if(!obj[parts[i]])obj[parts[i]]={};
+                obj=obj[parts[i]];
+              }
+              obj[parts[parts.length-1]]=m.data;
+              _fire(path,cur);
+            }
+          }catch(err){}
+        });
+
+        // 'patch' fires on update() calls — merge changes
+        es.addEventListener('patch',function(e){
+          try{
+            const m=JSON.parse(e.data);
+            const cur=Object.assign({},_cache[path]||{});
+            if(m.data&&typeof m.data==='object'){
+              // Shallow merge at the changed path
+              const parts=(m.path||'/').replace(/^\//,'').split('/').filter(Boolean);
+              let obj=cur;
+              for(let i=0;i<parts.length-1;i++){if(!obj[parts[i]])obj[parts[i]]={};obj=obj[parts[i]];}
+              if(parts.length>0)Object.assign(obj[parts[parts.length-1]]||{},m.data);
+              else Object.assign(cur,m.data);
+            }
+            _fire(path,cur);
+          }catch(err){_fetch(path);}
+        });
+
+        es.onerror=function(){
+          es.close();_sseActive[path]=false;
+          setTimeout(connect,retryDelay);
+          retryDelay=Math.min(retryDelay*2,30000);
+        };
+      }catch(e){
+        _sseActive[path]=false;
+        setTimeout(connect,retryDelay);
+        retryDelay=Math.min(retryDelay*2,30000);
+      }
+    }
+    connect();
+  }
+
   function Ref(path){this._p=path.replace(/^\/+|\/+$/g,'');}
   Ref.prototype.once=async function(){const v=await rest(this._p,'GET');return new Snap(v);};
   Ref.prototype.set=function(d){return rest(this._p,'PUT',d);};
@@ -1161,35 +1247,16 @@ select.AI option{background:#1C0F07;color:#fff}
   Ref.prototype.on=function(ev,cb){
     if(ev!=='value')return;
     const path=this._p;
-    if(_reg[path])return;
-    _reg[path]=true;
-    rest(path,'GET').then(v=>cb(new Snap(v))).catch(()=>{});
-    try{
-      const es=new EventSource(BASE+'/'+path+'.json?ns='+NS);
-      let ok=false;
-      const g=setTimeout(()=>{if(!ok){es.close();_poll(path,cb);}},4000);
-      es.addEventListener('put',function(e){
-        ok=true;clearTimeout(g);
-        try{const m=JSON.parse(e.data);if(m&&m.data!==undefined)cb(new Snap(m.data));}catch(e){}
-      });
-      es.addEventListener('patch',function(e){
-        // For patches, merge into last known value and fire callback
-        try{
-          const m=JSON.parse(e.data);
-          if(m&&m.data){
-            rest(path,'GET').then(v=>cb(new Snap(v))).catch(()=>{});
-          }
-        }catch(err){}
-      });
-      es.onerror=function(){if(!ok){es.close();clearTimeout(g);_poll(path,cb);}};
-    }catch(e){_poll(path,cb);}
+    if(!_listeners[path])_listeners[path]=[];
+    _listeners[path].push(cb);
+    // Fire immediately with cached value if available
+    if(_cache[path]!==undefined)cb(new Snap(_cache[path]));
+    // Initial fetch
+    _fetch(path);
+    // Open persistent SSE connection
+    _openSSE(path);
   };
-  function _poll(path,cb){
-    if(_reg[path+'_p'])return;_reg[path+'_p']=true;
-    let d=5000,f=0;
-    function r(){rest(path,'GET').then(v=>{f=0;d=5000;cb(new Snap(v));}).catch(()=>{f++;d=Math.min(30000,5000*Math.pow(2,f));});setTimeout(r,d);}
-    setTimeout(r,d);
-  }
+
   function DB(){}
   DB.prototype.ref=function(p){return new Ref(p||'');};
   const _db=new DB();
@@ -2496,12 +2563,7 @@ document.getElementById('DM').addEventListener('click',function(e){if(e.target==
 const _io=new IntersectionObserver((entries)=>{entries.forEach(en=>{if(en.isIntersecting)en.target.classList.add('vis');});},{threshold:.12});
 document.querySelectorAll('.FIU').forEach(el=>_io.observe(el));
 
-// Auto-refresh orders every 20s when admin orders tab is active — not every tab
-setInterval(()=>{
-  if(!sessionActive)return;
-  const orSec=document.getElementById('SEC_or');
-  if(orSec&&orSec.classList.contains('on'))loadAdmOrders();
-},20000);
+// SSE handles real-time updates — no polling needed
 
 // Cursor
 function initCursor(){
