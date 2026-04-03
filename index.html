@@ -876,6 +876,7 @@ select.AI option{background:#1C0F07;color:#fff}
     <button class="AREX" onclick="closeAR()">✕ Quitter AR</button>
   </div>
   <div class="ARBT">
+    <div id="AR_INFO_CARD" style="display:none;margin-bottom:10px;padding:10px;background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.2);border-radius:10px;backdrop-filter:blur(8px)"></div>
     <div class="ARDT" id="AR_DT"></div>
     <div class="ARDH">Pointez la caméra sur votre table · Le plat apparaît dans votre espace</div>
     <div class="ARMG" id="AR_MG"></div>
@@ -883,8 +884,13 @@ select.AI option{background:#1C0F07;color:#fff}
     <button class="ARADD" id="AR_ADD_BTN">🛒 Ajouter à la Commande</button>
   </div>
   <div id="ARNOC">
-    <div style="font-size:min(120px,28vw);animation:FLOATD 4s ease-in-out infinite" id="ARNOC_EM">🍽️</div>
+    <div id="ARNOC_DISH_IMG" style="display:none;width:140px;height:140px;border-radius:50%;object-fit:cover;border:3px solid rgba(201,168,76,.7);box-shadow:0 0 40px rgba(201,168,76,.3),0 0 80px rgba(120,1,22,.4);margin-bottom:4px;overflow:hidden">
+      <img id="ARNOC_PHOTO" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:block">
+    </div>
+    <div style="font-size:min(100px,24vw);animation:FLOATD 4s ease-in-out infinite;line-height:1" id="ARNOC_EM">🍽️</div>
     <h3 class="ARNCH" id="ARNOC_H">Plat</h3>
+    <div id="ARNOC_PRICE" style="font-family:'Playfair Display',serif;font-size:20px;color:var(--G);font-weight:700;margin-top:-6px;margin-bottom:4px"></div>
+    <p class="ARNCP" id="ARNOC_DESC" style="font-size:12px;color:rgba(250,243,224,.5);margin-bottom:2px;max-height:60px;overflow:hidden"></p>
     <p class="ARNCP">Accès à la caméra requis. Accordez la permission ou utilisez un appareil compatible.</p>
     <button class="ARNCB" onclick="reqCam()">📷 Autoriser la Caméra</button>
     <button class="APCL" style="margin-top:10px" onclick="closeAR()">✕ Fermer AR</button>
@@ -1281,23 +1287,37 @@ let _capN1=0,_capN2=0,_capOK=false;
 /* ═══════════════════════════════════════════════════════════
    SOUND NOTIFICATIONS
 ═══════════════════════════════════════════════════════════ */
+let _audioCtx=null;
+function _getACtx(){
+  try{
+    if(!_audioCtx||_audioCtx.state==='closed')
+      _audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    if(_audioCtx.state==='suspended')_audioCtx.resume();
+    return _audioCtx;
+  }catch{return null;}
+}
+function _note(ctx,freq,startDelay,dur,vol,type='sine'){
+  const o=ctx.createOscillator(),g=ctx.createGain();
+  o.type=type;o.connect(g);g.connect(ctx.destination);
+  const t=ctx.currentTime+startDelay;
+  o.frequency.setValueAtTime(freq,t);
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(vol,t+.03);
+  g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.start(t);o.stop(t+dur+.05);
+}
 function playNotifSound(type='order'){
   try{
-    const ctx=new (window.AudioContext||window.webkitAudioContext)();
-    const osc=ctx.createOscillator();
-    const gain=ctx.createGain();
-    osc.connect(gain);gain.connect(ctx.destination);
-    if(type==='order'){
-      osc.frequency.setValueAtTime(880,ctx.currentTime);
-      osc.frequency.setValueAtTime(1100,ctx.currentTime+.1);
-      osc.frequency.setValueAtTime(880,ctx.currentTime+.2);
-    }else{
-      osc.frequency.setValueAtTime(660,ctx.currentTime);
-      osc.frequency.setValueAtTime(880,ctx.currentTime+.1);
+    const ctx=_getACtx();if(!ctx)return;
+    if(type==='client'){
+      // Warm 4-note ascending chime for client order success
+      [[523,.00,.4,.22,'sine'],[659,.15,.4,.22,'sine'],[784,.32,.4,.22,'sine'],[1047,.52,.5,.18,'sine']].forEach(([f,d,dur,v,t])=>_note(ctx,f,d,dur,v,t));
+    }else if(type==='order'){
+      // Sharp 3-beep alert for admin new order
+      [[880,.00,.18,.14,'square'],[1100,.20,.18,.14,'square'],[880,.40,.18,.14,'square']].forEach(([f,d,dur,v,t])=>_note(ctx,f,d,dur,v,t));
+    }else if(type==='confirm'){
+      [[660,.00,.3,.18,'sine'],[880,.15,.3,.18,'sine']].forEach(([f,d,dur,v,t])=>_note(ctx,f,d,dur,v,t));
     }
-    gain.gain.setValueAtTime(.3,ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.5);
-    osc.start(ctx.currentTime);osc.stop(ctx.currentTime+.5);
   }catch(e){}
 }
 
@@ -1336,12 +1356,13 @@ function getDImg(d){return d.img||null;}
 ═══════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded',()=>{
   buildTicker();
+  // Show loader briefly then load — 400ms is enough for the animation
   setTimeout(()=>{
     document.getElementById('LDR').classList.add('gone');
     loadAll();buildAll();initSO();initCursor();updateCartBadge();
     document.getElementById('STN_DISHES').textContent=dishes.length;
     if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();
-  },1900);
+  },400);
 
   // Triple-click on logo → admin
   let _lc=0,_lt=null;
@@ -1776,8 +1797,8 @@ async function subOrd(){
   };
   try{await FB.push('orders/'+dk,order);}
   catch{LS.set('pending_'+Date.now(),order);}
-  // Play confirmation sound for USER
-  playNotifSound('confirm');
+  // Play warm chime for CLIENT confirmation
+  playNotifSound('client');
   cart=[];updateCartBadge();renderCartItems();closeM('CM');
   toast("✅ Commande envoyée! Nous confirmons bientôt.");
   // No popup notification for users - toast message is sufficient
@@ -1798,42 +1819,102 @@ function getIngEmoji(name){
 }
 
 function launchAR(){
-  if(!curDish)return;arDish=curDish;closeM('OM');
-  document.getElementById('AROV').classList.add('open');document.body.style.overflow='hidden';
-  buildARUI(arDish);startCamera();
+  if(!curDish)return;
+  arDish=curDish;
+  // Close the order modal first
+  const om=document.getElementById('OM');
+  if(om)om.classList.remove('open');
+  // Open AR after modal close animation settles
+  setTimeout(()=>{
+    document.body.style.overflow='hidden';
+    const arov=document.getElementById('AROV');
+    arov.classList.add('open');
+    buildARUI(arDish);
+    // Start camera after AR overlay is fully visible
+    setTimeout(()=>startCamera(), 120);
+  }, 180);
 }
 
 function buildARUI(d){
-  document.getElementById('AR_DISH_EM').textContent=d.emoji||'🍽️';
-  document.getElementById('AR_DT').textContent=getDN(d);
+  const dishName=getDN(d);
+  const dishDesc=getDD(d);
+  document.getElementById('AR_DT').textContent=dishName;
   document.getElementById('ARNOC_EM').textContent=d.emoji||'🍽️';
-  document.getElementById('ARNOC_H').textContent=getDN(d);
-  // Show real dish photo with animation
+  document.getElementById('ARNOC_H').textContent=dishName;
+
+  // Populate no-camera screen with real dish info
+  const nocPhoto=document.getElementById('ARNOC_PHOTO');
+  const nocImgWrap=document.getElementById('ARNOC_DISH_IMG');
+  const nocEm=document.getElementById('ARNOC_EM');
+  const nocPrice=document.getElementById('ARNOC_PRICE');
+  const nocDesc=document.getElementById('ARNOC_DESC');
+  if(nocPrice) nocPrice.textContent=`DZD ${Number(d.price||0).toLocaleString()}`;
+  if(nocDesc) nocDesc.textContent=dishDesc||'';
+  if(d.img && nocPhoto && nocImgWrap){
+    nocPhoto.src=d.img; nocPhoto.alt=dishName;
+    nocImgWrap.style.display='block';
+    if(nocEm) nocEm.style.display='none';
+  } else {
+    if(nocImgWrap) nocImgWrap.style.display='none';
+    if(nocEm){ nocEm.style.display='block'; nocEm.textContent=d.emoji||'🍽️';}
+  }
+
+  // ── Show real dish photo with animation ──
   const photoEl=document.getElementById('AR_DISH_PHOTO');
   const emojiEl=document.getElementById('AR_DISH_EM');
   if(d.img){
-    photoEl.src='';
-    photoEl.style.display='block';emojiEl.style.display='none';
+    photoEl.style.display='block';
+    emojiEl.style.display='none';
+    photoEl.style.animation='none';
     photoEl.style.opacity='0';
+    photoEl.alt=dishName;
     photoEl.onload=()=>{
-      photoEl.style.animation='none';
       void photoEl.offsetWidth;
-      photoEl.style.animation='AR_APPEAR .8s cubic-bezier(.16,1,.3,1) forwards, AR_FLOAT 4s ease-in-out 1s infinite';
+      photoEl.style.animation='AR_APPEAR .9s cubic-bezier(.16,1,.3,1) forwards, AR_FLOAT 4s ease-in-out 1.2s infinite';
+      photoEl.style.opacity='1';
     };
-    photoEl.alt=getDN(d);
+    photoEl.onerror=()=>{
+      photoEl.style.display='none';
+      emojiEl.style.display='flex';
+      emojiEl.style.animation='AR_FLOAT 4s ease-in-out infinite';
+    };
     photoEl.src=d.img;
   }else{
     photoEl.style.display='none';
     emojiEl.style.display='flex';
     emojiEl.style.animation='AR_FLOAT 4s ease-in-out infinite';
   }
+
+  // ── Nutritional grid ──
   document.getElementById('AR_MG').innerHTML=`
     <div class="ARMB"><span class="ARMV">${d.cal||0}</span><span class="ARML">Calories</span></div>
     <div class="ARMB"><span class="ARMV">${d.protein||0}g</span><span class="ARML">Protéines</span></div>
     <div class="ARMB"><span class="ARMV">${d.carbs||0}g</span><span class="ARML">Glucides</span></div>
     <div class="ARMB"><span class="ARMV">${d.fat||0}g</span><span class="ARML">Lipides</span></div>`;
+
+  // ── Ingredient pills ──
   document.getElementById('AR_IR').innerHTML=(d.ingredients||[]).slice(0,6).map((ing,i)=>
     `<div class="ARIP"><span style="width:6px;height:6px;border-radius:50%;background:${IC[i%IC.length]};display:inline-block;flex-shrink:0"></span>${ing.name}</div>`).join('');
+
+  // ── Dish info card in bottom bar ──
+  const infoCard=document.getElementById('AR_INFO_CARD');
+  if(infoCard){
+    const imgHTML=d.img
+      ?`<img src="${d.img}" alt="${dishName}" style="width:64px;height:64px;border-radius:12px;object-fit:cover;border:2px solid rgba(201,168,76,.6);flex-shrink:0;box-shadow:0 4px 16px rgba(0,0,0,.5)">`
+      :`<div style="width:64px;height:64px;border-radius:12px;background:var(--D3);border:2px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0">${d.emoji||'🍽️'}</div>`;
+    infoCard.innerHTML=`
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        ${imgHTML}
+        <div style="flex:1;min-width:0">
+          <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${dishName}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${dishDesc||''}</div>
+          <div style="font-family:'Playfair Display',serif;font-size:16px;color:var(--G);font-weight:700;margin-top:3px">DZD ${Number(d.price||0).toLocaleString()}</div>
+        </div>
+      </div>`;
+    infoCard.style.display='block';
+  }
+
+  // ── Floating ingredient annotations ──
   const annsEl=document.getElementById('AR_ANNS');annsEl.innerHTML='';
   const POS=[{top:'8%',left:'1%'},{top:'10%',right:'2%'},{top:'36%',left:'0%'},{top:'34%',right:'1%'},{bottom:'33%',left:'2%'},{bottom:'31%',right:'2%'}];
   (d.ingredients||[]).slice(0,6).forEach((ing,i)=>{
@@ -1866,39 +1947,99 @@ function drawARLines(){
 function startCamera(){
   const vid=document.getElementById('ARVID');
   const nocEl=document.getElementById('ARNOC');
-  // Must be HTTPS or localhost for camera
-  if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1'){
-    nocEl.classList.add('show');return;
+  if(!vid){nocEl&&nocEl.classList.add('show');return;}
+
+  // Stop any existing stream first
+  if(arStream){arStream.getTracks().forEach(t=>t.stop());arStream=null;}
+
+  // Ensure video element properties are set before stream
+  vid.muted=true;
+  vid.playsInline=true;
+  vid.setAttribute('playsinline','true');
+  vid.setAttribute('webkit-playsinline','true');
+  vid.setAttribute('muted','true');
+
+  function doPlay(stream){
+    arStream=stream;
+    vid.srcObject=stream;
+    // Use a reliable play sequence
+    const playAttempt=()=>{
+      const p=vid.play();
+      if(p!==undefined){
+        p.then(()=>{
+          if(nocEl)nocEl.classList.remove('show');
+        }).catch(()=>{
+          // Autoplay blocked — try again after short delay
+          setTimeout(()=>{
+            vid.play().catch(()=>{});
+            if(nocEl)nocEl.classList.remove('show');
+          },300);
+        });
+      } else {
+        if(nocEl)nocEl.classList.remove('show');
+      }
+    };
+    if(vid.readyState>=1){
+      playAttempt();
+    } else {
+      vid.onloadedmetadata=playAttempt;
+      // Timeout fallback
+      setTimeout(playAttempt, 2000);
+    }
+    if(nocEl)nocEl.classList.remove('show');
   }
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-    nocEl.classList.add('show');return;
+
+  function showNoCam(){
+    if(nocEl)nocEl.classList.add('show');
   }
-  nocEl.classList.remove('show');
-  // Try rear camera first, fall back to any camera
-  const constraints=[
-    {video:{facingMode:{exact:'environment'},width:{ideal:1280},height:{ideal:720}}},
-    {video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}},
+
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    showNoCam();return;
+  }
+
+  // Try constraints one by one
+  const list=[
+    {video:{facingMode:{exact:'environment'}}},
+    {video:{facingMode:'environment'}},
     {video:true}
   ];
-  function tryNext(idx){
-    if(idx>=constraints.length){nocEl.classList.add('show');return;}
-    navigator.mediaDevices.getUserMedia(constraints[idx])
-      .then(s=>{
-        arStream=s;
-        vid.srcObject=s;
-        vid.onloadedmetadata=()=>vid.play().catch(()=>{});
-        nocEl.classList.remove('show');
-      })
-      .catch(()=>tryNext(idx+1));
+  let idx=0;
+  function next(){
+    if(idx>=list.length){showNoCam();return;}
+    const c=list[idx++];
+    navigator.mediaDevices.getUserMedia(c)
+      .then(doPlay)
+      .catch(err=>{
+        // NotAllowedError = user denied — show no-cam immediately
+        if(err.name==='NotAllowedError'||err.name==='PermissionDeniedError'){
+          showNoCam();
+        } else {
+          next();
+        }
+      });
   }
-  tryNext(0);
+  next();
 }
 
-function reqCam(){startCamera();}
+function reqCam(){
+  const nocEl=document.getElementById('ARNOC');
+  if(nocEl)nocEl.classList.remove('show');
+  const btn=document.querySelector('#ARNOC .ARNCB');
+  if(btn){btn.textContent='⏳ Activation...';btn.disabled=true;}
+  startCamera();
+  setTimeout(()=>{if(btn){btn.textContent='📷 Autoriser la Caméra';btn.disabled=false;}},5000);
+}
 
 function closeAR(){
-  document.getElementById('AROV').classList.remove('open');document.body.style.overflow='';
-  if(arStream){arStream.getTracks().forEach(t=>t.stop());arStream=null;}
+  const arov=document.getElementById('AROV');
+  if(arov)arov.classList.remove('open');
+  document.body.style.overflow='';
+  if(arStream){
+    arStream.getTracks().forEach(t=>{try{t.stop();}catch(e){}});
+    arStream=null;
+  }
+  const vid=document.getElementById('ARVID');
+  if(vid){vid.pause();vid.srcObject=null;}
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1930,26 +2071,30 @@ function showDash(){
   document.getElementById('APD').classList.add('show');
   sessionActive=true;
   _calDate=new Date();_selDate=new Date().toISOString().split('T')[0];
+  // Render immediately with local data
+  renderDAdm();
+  const localDk=_selDate;
+  const localOrders=LS.get('orders/'+localDk);
+  if(localOrders&&typeof localOrders==='object'){
+    const os=Object.values(localOrders).filter(Boolean);
+    updStats(os);renderDAdmOrders(os);
+  }else{updStats([]);renderDAdmOrders([]);}
   renderCal();
-  loadAdmOrders();renderDAdm();
-  setTimeout(loadCalendarDates,500);
-  document.getElementById('ST_D').textContent=dishes.length;
+  const stD=document.getElementById('ST_D');if(stD)stD.textContent=dishes.length;
   const lbl=document.getElementById('DISH_COUNT_LBL');if(lbl)lbl.textContent=dishes.length;
   // Fill settings
   const s=LS.get('settings')||{};
-  if(s.phone)document.getElementById('S_PH').value=s.phone;
-  if(s.email)document.getElementById('S_EM').value=s.email;
-  if(s.address)document.getElementById('S_ADR').value=s.address;
-  if(s.hours)document.getElementById('S_HR').value=s.hours;
-  if(s.ig)document.getElementById('S_IG').value=s.ig;
-  if(s.fb)document.getElementById('S_FB').value=s.fb;
-  if(s.wa)document.getElementById('S_WA').value=s.wa;
-  if(s.map_embed)document.getElementById('S_MAP').value=s.map_embed;
-  if(s.map_direct)document.getElementById('S_MAP_DIRECT').value=s.map_direct;
+  ['S_PH','S_EM','S_ADR','S_HR','S_IG','S_FB','S_WA','S_MAP','S_MAP_DIRECT'].forEach(id=>{
+    const key={S_PH:'phone',S_EM:'email',S_ADR:'address',S_HR:'hours',S_IG:'ig',S_FB:'fb',S_WA:'wa',S_MAP:'map_embed',S_MAP_DIRECT:'map_direct'}[id];
+    const el=document.getElementById(id);if(el&&s[key])el.value=s[key];
+  });
   const hero=LS.get('hero')||{};
-  if(hero.t1)document.getElementById('S_T1').value=hero.t1;
-  if(hero.t2)document.getElementById('S_T2').value=hero.t2;
-  if(hero.sub)document.getElementById('S_SUB').value=hero.sub;
+  if(hero.t1){const e=document.getElementById('S_T1');if(e)e.value=hero.t1;}
+  if(hero.t2){const e=document.getElementById('S_T2');if(e)e.value=hero.t2;}
+  if(hero.sub){const e=document.getElementById('S_SUB');if(e)e.value=hero.sub;}
+  // Fetch fresh data in background without blocking UI
+  setTimeout(()=>{loadAdmOrders();},50);
+  setTimeout(()=>{loadCalendarDates();},300);
 }
 
 function doLogout(){
@@ -1974,9 +2119,14 @@ async function loadAdmOrders(){
   _selDate=dk;
   try{
     const d=await FB.once('orders/'+dk);
-    if(d){const os=Object.values(d);updStats(os);renderDAdmOrders(os);}
-    else{updStats([]);renderDAdmOrders([]);}
-  }catch{toast('⚠ Impossible de charger les commandes');}
+    _ordKeyMap={};
+    if(d){
+      // Build key map for instant updates
+      Object.entries(d).forEach(([k,v])=>{if(v&&v.timestamp)_ordKeyMap[v.timestamp]=k;});
+      const os=Object.values(d).filter(Boolean);
+      updStats(os);renderDAdmOrders(os);
+    }else{updStats([]);renderDAdmOrders([]);}
+  }catch{/* silent — don't toast on background refresh */}
 }
 
 function updStats(os){
@@ -2076,17 +2226,34 @@ function calSelectDay(ds){
 async function loadAdmOrdersForDate(dk){
   try{
     const d=await FB.once('orders/'+dk);
-    const os=d?Object.values(d):[];
+    _ordKeyMap={};
+    const os=d?Object.entries(d).map(([k,v])=>{if(v&&v.timestamp)_ordKeyMap[v.timestamp]=k;return v;}).filter(Boolean):[];
     if(dk===new Date().toISOString().split('T')[0])updStats(os);
     else renderDAdmOrders(os);
   }catch{toast('⚠ Impossible de charger');}
 }
 async function loadCalendarDates(){
-  const today=new Date();_datesWithOrders.clear();
-  for(let i=0;i<31;i++){
-    const d=new Date(today);d.setDate(today.getDate()-i);
-    const dk=d.toISOString().split('T')[0];
-    try{const data=await FB.once('orders/'+dk);if(data&&Object.keys(data).length>0)_datesWithOrders.add(dk);}catch{}
+  // Fetch entire orders node once — much faster than 31 sequential requests
+  try{
+    const all=await FB.once('orders');
+    _datesWithOrders.clear();
+    if(all&&typeof all==='object'){
+      Object.keys(all).forEach(dk=>{
+        const o=all[dk];
+        if(o&&typeof o==='object'&&Object.keys(o).length>0)_datesWithOrders.add(dk);
+      });
+    }
+  }catch{
+    // Fallback: only check current month (7 days) if full fetch fails
+    const today=new Date();
+    const checks=[];
+    for(let i=0;i<7;i++){
+      const d=new Date(today);d.setDate(today.getDate()-i);
+      checks.push(d.toISOString().split('T')[0]);
+    }
+    await Promise.allSettled(checks.map(async dk=>{
+      try{const data=await FB.once('orders/'+dk);if(data&&Object.keys(data).length>0)_datesWithOrders.add(dk);}catch{}
+    }));
   }
   renderCal();
 }
@@ -2096,21 +2263,38 @@ function filterOrders(f,btn){
   renderDAdmOrders(_allOrders);
 }
 
+// Map of timestamp → Firebase key for fast updates
+let _ordKeyMap={};
+
 async function updOrdSt(btn,ts,status){
-  const dk=new Date().toISOString().split('T')[0];
   btn.disabled=true;btn.textContent='…';
+  const dk=_selDate||new Date().toISOString().split('T')[0];
+  // Use cached key if available
+  let key=_ordKeyMap[ts];
   try{
-    const d=await FB.once('orders/'+dk);
-    if(d){
-      const key=Object.entries(d).find(([k,v])=>v.timestamp===ts)?.[0];
-      if(key){
-        await FB.update('orders/'+dk+'/'+key,{status});
-        playNotifSound(status==='confirmed'?'confirm':'order');
-        toast(status==='confirmed'?'✅ Commande confirmée!':'❌ Commande annulée');
-        loadAdmOrders();
+    if(!key){
+      const d=await FB.once('orders/'+dk);
+      if(d){
+        const entry=Object.entries(d).find(([k,v])=>v.timestamp===ts);
+        if(entry){key=entry[0];_ordKeyMap[ts]=key;}
       }
     }
-  }catch{toast('⚠ Mise à jour échouée');}
+    if(key){
+      await FB.update('orders/'+dk+'/'+key,{status});
+      // Update local cache immediately for instant UI
+      const ord=_allOrders.find(o=>o.timestamp===ts);
+      if(ord)ord.status=status;
+      renderDAdmOrders(_allOrders);
+      updStats(_allOrders);
+      playNotifSound(status==='confirmed'?'confirm':'order');
+      toast(status==='confirmed'?'✅ Commande confirmée!':'❌ Commande annulée');
+    }else{
+      toast('⚠ Commande introuvable');btn.disabled=false;btn.textContent=status==='confirmed'?'✅ Confirmer':'✕ Annuler';
+    }
+  }catch{
+    toast('⚠ Mise à jour échouée');
+    btn.disabled=false;btn.textContent=status==='confirmed'?'✅ Confirmer':'✕ Annuler';
+  }
 }
 
 function resetOrders(){LS.del('orders');toast('🗑 Commandes effacées');}
@@ -2299,8 +2483,12 @@ document.getElementById('DM').addEventListener('click',function(e){if(e.target==
 const _io=new IntersectionObserver((entries)=>{entries.forEach(en=>{if(en.isIntersecting)en.target.classList.add('vis');});},{threshold:.12});
 document.querySelectorAll('.FIU').forEach(el=>_io.observe(el));
 
-// Auto-refresh orders every 8s when admin is open
-setInterval(()=>{if(sessionActive)loadAdmOrders();},8000);
+// Auto-refresh orders every 20s when admin orders tab is active — not every tab
+setInterval(()=>{
+  if(!sessionActive)return;
+  const orSec=document.getElementById('SEC_or');
+  if(orSec&&orSec.classList.contains('on'))loadAdmOrders();
+},20000);
 
 // Cursor
 function initCursor(){
