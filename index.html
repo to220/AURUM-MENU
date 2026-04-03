@@ -383,7 +383,7 @@ footer{padding:46px 22px;border-top:1px solid rgba(201,168,76,.08);display:flex;
 /* ══════════════════════════════════════════
    AR OVERLAY
 ══════════════════════════════════════════ */
-#AROV{position:fixed;inset:0;z-index:900;background:#000;display:none;flex-direction:column;overflow:hidden}
+#AROV{position:fixed;inset:0;z-index:9800;background:#000;display:none;flex-direction:column;overflow:hidden}
 #AROV.open{display:flex}
 #ARVID{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .ARSL{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(201,168,76,.7),transparent);animation:SCANLN 3s ease-in-out infinite;z-index:13;pointer-events:none}
@@ -518,6 +518,85 @@ select.AI option{background:#1C0F07;color:#fff}
 .MAP_LINK_PREV{background:#f5ebe0;border:1.5px solid #e2d0bc;border-radius:12px;padding:10px 14px;font-size:12px;color:#7A6658;margin-top:6px;word-break:break-all}
 /* Change pass section */
 .PASS_HIST{font-size:11px;color:#7A6658;margin-top:6px}
+
+/* ══════════════════════════════════════════
+   AR DISH PHOTO — Real image with animation
+══════════════════════════════════════════ */
+#ARDISH_LAYER{position:absolute;top:50%;left:50%;transform:translate(-50%,-54%);z-index:10;display:flex;flex-direction:column;align-items:center}
+.ARDISH_IMG_WRAP{position:relative;width:220px;height:220px;display:flex;align-items:center;justify-content:center}
+.ARDISH_PHOTO{width:210px;height:210px;border-radius:50%;object-fit:cover;position:relative;z-index:3;border:4px solid rgba(201,168,76,.85);box-shadow:0 0 0 8px rgba(201,168,76,.15),0 0 50px rgba(201,168,76,.5),0 20px 60px rgba(0,0,0,.7)}
+@keyframes AR_APPEAR{
+  0%{opacity:0;transform:scale(0) rotate(-20deg);filter:blur(30px)}
+  50%{opacity:.8;transform:scale(1.15) rotate(4deg);filter:blur(2px)}
+  75%{transform:scale(.95) rotate(-1deg);filter:blur(0)}
+  100%{opacity:1;transform:scale(1) rotate(0);filter:blur(0)}
+}
+@keyframes AR_FLOAT{
+  0%,100%{transform:translateY(0px) scale(1)}
+  50%{transform:translateY(-14px) scale(1.02)}
+}
+@keyframes AR_RING_PULSE{
+  0%{transform:translate(-50%,-50%) scale(.9);opacity:.9}
+  100%{transform:translate(-50%,-50%) scale(1.7);opacity:0}
+}
+@keyframes AR_GLOW_PULSE{
+  0%,100%{opacity:.4;transform:translate(-50%,-50%) scale(1)}
+  50%{opacity:.8;transform:translate(-50%,-50%) scale(1.1)}
+}
+.ARDISH_GLOW{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.35) 0%,rgba(120,1,22,.2) 50%,transparent 70%);animation:AR_GLOW_PULSE 2.5s ease-in-out infinite;pointer-events:none;z-index:1}
+.ARDISH_RING{position:absolute;top:50%;left:50%;width:240px;height:240px;border-radius:50%;border:2px solid rgba(201,168,76,.6);pointer-events:none;z-index:2;animation:AR_RING_PULSE 2s ease-out infinite}
+.ARDISH_RING2{position:absolute;top:50%;left:50%;width:240px;height:240px;border-radius:50%;border:2px solid rgba(201,168,76,.6);pointer-events:none;z-index:2;animation:AR_RING_PULSE 2s ease-out .7s infinite}
+.ARDSH{width:120px;height:20px;background:radial-gradient(ellipse,rgba(0,0,0,.5),transparent 70%);border-radius:50%;margin-top:-10px;z-index:1}
+
+/* ══════════════════════════════════════════
+   ADMIN ORDERS — Professional Table
+══════════════════════════════════════════ */
+.ORD_TABLE_WRAP{overflow-x:auto;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.15)}
+.ORD_TABLE{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+.ORD_TABLE thead tr{background:linear-gradient(135deg,#1C0F07,#2d1810);color:#fff}
+.ORD_TABLE thead th{padding:14px 16px;text-align:left;font-weight:700;letter-spacing:.05em;font-size:11px;text-transform:uppercase;white-space:nowrap}
+.ORD_TABLE tbody tr{border-bottom:1px solid #f0e8df;transition:background .2s}
+.ORD_TABLE tbody tr:hover{background:#fdf8f2}
+.ORD_TABLE tbody tr.row-pending{border-left:4px solid #f59e0b}
+.ORD_TABLE tbody tr.row-confirmed{border-left:4px solid #22c55e}
+.ORD_TABLE tbody tr.row-cancelled{border-left:4px solid #ef4444;opacity:.65}
+.ORD_TABLE td{padding:13px 16px;vertical-align:middle;color:#1C0F07}
+.ORD_TD_NAME{font-weight:700;font-size:14px;color:#1C0F07}
+.ORD_TD_PHONE{color:var(--orange);font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.ORD_TD_PHONE:hover{text-decoration:underline}
+.ORD_TD_ITEMS{color:#4a3728;font-size:12px;max-width:220px;line-height:1.4}
+.ORD_TD_TOTAL{font-family:'Playfair Display',serif;font-weight:700;font-size:15px;color:var(--orange);white-space:nowrap}
+.ORD_ST_BADGE{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.05em;white-space:nowrap}
+.ORD_ST_BADGE.pending{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+.ORD_ST_BADGE.confirmed{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.ORD_ST_BADGE.cancelled{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+.ORD_ACT_BTN{padding:9px 18px;border-radius:8px;font-weight:700;font-size:12px;letter-spacing:.04em;cursor:pointer;border:none;transition:all .2s;white-space:nowrap}
+.ORD_ACT_BTN.confirm{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;box-shadow:0 3px 10px rgba(34,197,94,.3)}
+.ORD_ACT_BTN.confirm:hover{background:linear-gradient(135deg,#15803d,#16a34a);transform:translateY(-1px)}
+.ORD_ACT_BTN.cancel{background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;box-shadow:0 3px 10px rgba(239,68,68,.3)}
+.ORD_ACT_BTN.cancel:hover{background:linear-gradient(135deg,#b91c1c,#dc2626);transform:translateY(-1px)}
+.ORD_ACT_BTN:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.ORD_NOTES{font-size:11px;color:var(--orange);margin-top:3px;font-style:italic}
+.ORD_CAL_WRAP{background:#fff;border-radius:16px;padding:20px;margin-bottom:18px;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.ORD_CAL_HDR{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.ORD_CAL_TITLE{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#1C0F07}
+.ORD_CAL_NAV{display:flex;gap:8px}
+.ORD_CAL_NAV button{width:32px;height:32px;border-radius:50%;border:1.5px solid #e2d0bc;background:#fff;color:#7A6658;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.ORD_CAL_NAV button:hover{border-color:var(--orange);color:var(--orange)}
+.ORD_CAL_DAYS_HDR{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:6px}
+.ORD_CAL_DAYS_HDR span{text-align:center;font-size:10px;font-weight:700;color:#7A6658;letter-spacing:.08em;text-transform:uppercase;padding:4px 0}
+.ORD_CAL_GRID{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.CAL_DAY{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:12px;font-weight:600;color:#4a3728;transition:all .2s;position:relative;border:1.5px solid transparent}
+.CAL_DAY:hover{background:#fdf0e8;border-color:#e2d0bc}
+.CAL_DAY.empty{cursor:default;pointer-events:none}
+.CAL_DAY.today{background:#fff3cd;border-color:var(--orange);color:var(--orange)}
+.CAL_DAY.selected{background:linear-gradient(135deg,var(--orange),#e07830);color:#fff;border-color:transparent;box-shadow:0 3px 10px rgba(192,98,42,.35)}
+.CAL_DAY.has-orders::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:#22c55e}
+.CAL_DAY.selected.has-orders::after{background:#fff}
+.CAL_SELECTED_DATE{text-align:center;font-size:11px;color:#7A6658;margin-top:8px;font-style:italic}
+.ORD_DATE_LABEL{display:flex;align-items:center;gap:8px;margin-bottom:12px;color:#7A6658;font-size:12px}
+.ORD_DATE_LABEL strong{color:#1C0F07;font-size:14px}
+
 </style>
 </head>
 <body id="top">
@@ -550,9 +629,9 @@ select.AI option{background:#1C0F07;color:#fff}
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.81 19.79 19.79 0 01.01 2.22 2 2 0 012 .04h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"/></svg>
       <span id="TB_PHONE_TXT">+213 (0) 555 00 00</span>
     </a>
-    <a class="TB_ITEM" id="TB_EMAIL" href="mailto:contact@aurum.dz">
+    <a class="TB_ITEM" id="TB_EMAIL" href="/cdn-cgi/l/email-protection#e5868a8b91848691a58490979088cb819f">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-      <span id="TB_EMAIL_TXT">contact@aurum.dz</span>
+      <span id="TB_EMAIL_TXT"><span class="__cf_email__" data-cfemail="7a1915140e1b190e3a1b0f080f17541e00">[email&#160;protected]</span></span>
     </a>
     <a class="TB_ITEM" id="TB_ADDR" href="#MAP_SEC">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -698,8 +777,10 @@ select.AI option{background:#1C0F07;color:#fff}
       src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d103681.33413994517!2d-0.7188730877991739!3d35.69894458319692!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd7e89966141a0e1%3A0x892a0641b5a5b50!2sOran!5e0!3m2!1sfr!2sdz!4v1700000000000"
       class="MAP_FRAME"
       allowfullscreen=""
+      allow="fullscreen"
       loading="lazy"
-      referrerpolicy="no-referrer-when-downgrade">
+      referrerpolicy="no-referrer-when-downgrade"
+      style="border:0;width:100%;height:100%;display:block">
     </iframe>
     <div class="MAP_OVERLAY">
       <div class="MAP_OV_NAME">AURUM Restaurant</div>
@@ -779,7 +860,16 @@ select.AI option{background:#1C0F07;color:#fff}
   <div class="ARCO"><div class="ACC TL"></div><div class="ACC TR"></div><div class="ACC BL"></div><div class="ACC BR"></div></div>
   <div class="ARSL"></div>
   <svg id="AR_SVG" xmlns="http://www.w3.org/2000/svg"></svg>
-  <div id="ARDISH_LAYER"><div class="ARDISH_EM" id="AR_DISH_EM">🍽️</div><div class="ARDSH"></div></div>
+  <div id="ARDISH_LAYER">
+    <div class="ARDISH_IMG_WRAP" id="AR_DISH_IMG_WRAP">
+      <div class="ARDISH_GLOW"></div>
+      <div class="ARDISH_RING"></div>
+      <div class="ARDISH_RING2"></div>
+      <img class="ARDISH_PHOTO" id="AR_DISH_PHOTO" src="" alt="" style="display:none"/>
+      <div class="ARDISH_EM" id="AR_DISH_EM" style="font-size:80px;display:flex;align-items:center;justify-content:center;width:210px;height:210px;filter:drop-shadow(0 0 20px rgba(201,168,76,.6))">🍽️</div>
+    </div>
+    <div class="ARDSH"></div>
+  </div>
   <div id="AR_ANNS"></div>
   <div class="ARTP">
     <div class="ARPL"><div class="ARDOT"></div><span>AR Live · Caméra Arrière</span></div>
@@ -868,16 +958,46 @@ select.AI option{background:#1C0F07;color:#fff}
 
       <!-- ORDERS -->
       <div class="ASEC" id="SEC_or">
+        <div class="ORD_CAL_WRAP">
+          <div class="ORD_CAL_HDR">
+            <div class="ORD_CAL_TITLE">📅 Calendrier des Commandes</div>
+            <div class="ORD_CAL_NAV">
+              <button onclick="calNav(-1)">&#8249;</button>
+              <button onclick="calNav(1)">&#8250;</button>
+            </div>
+          </div>
+          <div class="ORD_CAL_DAYS_HDR">
+            <span>Dim</span><span>Lun</span><span>Mar</span><span>Mer</span><span>Jeu</span><span>Ven</span><span>Sam</span>
+          </div>
+          <div class="ORD_CAL_GRID" id="CAL_GRID"></div>
+          <div class="CAL_SELECTED_DATE" id="CAL_SEL_LBL"></div>
+        </div>
         <div class="ACD">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:9px">
-            <div class="ACDT" style="margin-bottom:0">Commandes en Direct</div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <div class="ACDT" style="margin-bottom:0">Commandes en Direct</div>
+              <div class="LIVE_IND"><div class="LIVE_DOT"></div>Auto-refresh 8s</div>
+            </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="APB APBSM" onclick="filterOrders('all',this)">Toutes</button>
               <button class="APB APBSM" onclick="filterOrders('pending',this)" style="background:#b45309">⏳ En Attente</button>
               <button class="APB APBSM" onclick="filterOrders('confirmed',this)" style="background:#15803d">✅ Confirmées</button>
+              <button class="APB APBSM" onclick="filterOrders('cancelled',this)" style="background:#991b1b">❌ Annulées</button>
             </div>
           </div>
-          <div id="ORDS_LIST"></div>
+          <div class="ORD_DATE_LABEL"><span>📆</span><strong id="ORD_DATE_TXT">Aujourd'hui</strong></div>
+          <div class="ORD_TABLE_WRAP">
+            <table class="ORD_TABLE">
+              <thead>
+                <tr>
+                  <th>#</th><th>Client</th><th>Téléphone</th><th>Heure</th>
+                  <th>Table/Adresse</th><th>Plats</th><th>Total</th><th>Statut</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="ORDS_LIST"></tbody>
+            </table>
+          </div>
+          <div id="ORDS_EMPTY" style="display:none;text-align:center;padding:32px;color:#7A6658;font-size:14px">Aucune commande trouvée 🍽</div>
         </div>
       </div>
 
@@ -1006,7 +1126,7 @@ select.AI option{background:#1C0F07;color:#fff}
   </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 'use strict';
 /* ═══════════════════════════════════════════════════════════
    FIREBASE LITE — fetch REST + SSE real-time
@@ -1149,7 +1269,12 @@ const TICKER_ITEMS=['Entrées','Produits Frais','Spécialités Grillées','Signa
 
 let cart=[],curDish=null,curQty=1,arStream=null,arDish=null;
 let sessionActive=false,loginAttempts=0,lockedUntil=0;
-let _ordFilter='all',_knownOrderKeys=new Set();
+let _ordFilter='all';
+// Persist known order keys in sessionStorage to prevent re-notification on page re-render
+const _knownOrderKeys=(()=>{
+  try{const s=sessionStorage.getItem('_aurumKnownOrds');return new Set(s?JSON.parse(s):[]);}catch{return new Set();}
+})();
+function _saveKnownKeys(){try{sessionStorage.setItem('_aurumKnownOrds',JSON.stringify([..._knownOrderKeys]));}catch{}}
 let _activeCat='all';
 let _capN1=0,_capN2=0,_capOK=false;
 
@@ -1247,9 +1372,11 @@ function loadAll(){
     Object.entries(d).forEach(([k,o])=>{
       if(!_knownOrderKeys.has(k)){
         _knownOrderKeys.add(k);
-        playNotifSound('order');
-        pushNotif('🛎 Nouvelle Commande!',`${o.name||'Client'}: ${(o.items||'').slice(0,60)}…`,'urgent');
+        _saveKnownKeys();
+        // Only notify admin panel — never show notifications to regular visitors
         if(sessionActive){
+          playNotifSound('order');
+          pushNotif('🛎 Nouvelle Commande!',`${o.name||'Client'}: ${(o.items||'').slice(0,60)}…`,'urgent');
           pushNotif('📋 Commande Reçue',`${o.name||'Client'} — DZD ${(o.total||0).toLocaleString()}`,'admin');
           loadAdmOrders();
         }
@@ -1653,7 +1780,7 @@ async function subOrd(){
   playNotifSound('confirm');
   cart=[];updateCartBadge();renderCartItems();closeM('CM');
   toast("✅ Commande envoyée! Nous confirmons bientôt.");
-  pushNotif('✅ Commande Confirmée!',`Votre commande de ${order.items.slice(0,50)} a été envoyée!`,'urgent');
+  // No popup notification for users - toast message is sufficient
   genCaptcha();
 }
 
@@ -1681,6 +1808,25 @@ function buildARUI(d){
   document.getElementById('AR_DT').textContent=getDN(d);
   document.getElementById('ARNOC_EM').textContent=d.emoji||'🍽️';
   document.getElementById('ARNOC_H').textContent=getDN(d);
+  // Show real dish photo with animation
+  const photoEl=document.getElementById('AR_DISH_PHOTO');
+  const emojiEl=document.getElementById('AR_DISH_EM');
+  if(d.img){
+    photoEl.src='';
+    photoEl.style.display='block';emojiEl.style.display='none';
+    photoEl.style.opacity='0';
+    photoEl.onload=()=>{
+      photoEl.style.animation='none';
+      void photoEl.offsetWidth;
+      photoEl.style.animation='AR_APPEAR .8s cubic-bezier(.16,1,.3,1) forwards, AR_FLOAT 4s ease-in-out 1s infinite';
+    };
+    photoEl.alt=getDN(d);
+    photoEl.src=d.img;
+  }else{
+    photoEl.style.display='none';
+    emojiEl.style.display='flex';
+    emojiEl.style.animation='AR_FLOAT 4s ease-in-out infinite';
+  }
   document.getElementById('AR_MG').innerHTML=`
     <div class="ARMB"><span class="ARMV">${d.cal||0}</span><span class="ARML">Calories</span></div>
     <div class="ARMB"><span class="ARMV">${d.protein||0}g</span><span class="ARML">Protéines</span></div>
@@ -1719,10 +1865,33 @@ function drawARLines(){
 
 function startCamera(){
   const vid=document.getElementById('ARVID');
-  if(!navigator.mediaDevices?.getUserMedia){document.getElementById('ARNOC').classList.add('show');return;}
-  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1920},height:{ideal:1080}}})
-    .then(s=>{arStream=s;vid.srcObject=s;document.getElementById('ARNOC').classList.remove('show');})
-    .catch(()=>{document.getElementById('ARNOC').classList.add('show');});
+  const nocEl=document.getElementById('ARNOC');
+  // Must be HTTPS or localhost for camera
+  if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1'){
+    nocEl.classList.add('show');return;
+  }
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    nocEl.classList.add('show');return;
+  }
+  nocEl.classList.remove('show');
+  // Try rear camera first, fall back to any camera
+  const constraints=[
+    {video:{facingMode:{exact:'environment'},width:{ideal:1280},height:{ideal:720}}},
+    {video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}},
+    {video:true}
+  ];
+  function tryNext(idx){
+    if(idx>=constraints.length){nocEl.classList.add('show');return;}
+    navigator.mediaDevices.getUserMedia(constraints[idx])
+      .then(s=>{
+        arStream=s;
+        vid.srcObject=s;
+        vid.onloadedmetadata=()=>vid.play().catch(()=>{});
+        nocEl.classList.remove('show');
+      })
+      .catch(()=>tryNext(idx+1));
+  }
+  tryNext(0);
 }
 
 function reqCam(){startCamera();}
@@ -1760,7 +1929,10 @@ function showDash(){
   document.getElementById('APLOG').style.display='none';
   document.getElementById('APD').classList.add('show');
   sessionActive=true;
+  _calDate=new Date();_selDate=new Date().toISOString().split('T')[0];
+  renderCal();
   loadAdmOrders();renderDAdm();
+  setTimeout(loadCalendarDates,500);
   document.getElementById('ST_D').textContent=dishes.length;
   const lbl=document.getElementById('DISH_COUNT_LBL');if(lbl)lbl.textContent=dishes.length;
   // Fill settings
@@ -1793,12 +1965,13 @@ function aTab(name){
   document.querySelectorAll('.ASEC').forEach(s=>s.classList.remove('on'));
   const tb=document.getElementById('TAB_'+name),sc=document.getElementById('SEC_'+name);
   if(tb)tb.classList.add('on');if(sc)sc.classList.add('on');
-  if(name==='or')loadAdmOrders();
+  if(name==='or'){loadAdmOrders();renderCal();}
 }
 
 /* ─── ORDERS ─── */
 async function loadAdmOrders(){
   const dk=new Date().toISOString().split('T')[0];
+  _selDate=dk;
   try{
     const d=await FB.once('orders/'+dk);
     if(d){const os=Object.values(d);updStats(os);renderDAdmOrders(os);}
@@ -1820,30 +1993,102 @@ function updStats(os){
 }
 
 let _allOrders=[];
+let _calDate=new Date();
+let _selDate=new Date().toISOString().split('T')[0];
+let _datesWithOrders=new Set();
+
 function renderDAdmOrders(os,containerId='ORDS_LIST',limit=999){
   _allOrders=os;
+  if(containerId==='ORDS_LIST'){
+    const tbody=document.getElementById('ORDS_LIST');
+    const emptyEl=document.getElementById('ORDS_EMPTY');
+    if(!tbody)return;
+    let filtered=_ordFilter==='all'?os:os.filter(o=>o.status===_ordFilter);
+    filtered=filtered.slice(-limit).reverse();
+    if(!filtered.length){tbody.innerHTML='';if(emptyEl)emptyEl.style.display='block';return;}
+    if(emptyEl)emptyEl.style.display='none';
+    tbody.innerHTML=filtered.map((o,idx)=>{
+      const stCls=o.status==='pending'?'pending':o.status==='confirmed'?'confirmed':'cancelled';
+      const stTxt=o.status==='pending'?'⏳ En Attente':o.status==='confirmed'?'✅ Confirmée':'❌ Annulée';
+      const phone=o.phone||'—';
+      const phoneLink=phone!=='—'?`<a class="ORD_TD_PHONE" href="tel:${phone.replace(/\s/g,'')}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.81 19.79 19.79 0 01.01 2.22 2 2 0 012 .04h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"/></svg>${phone}</a>`:'<span style="color:#ccc">—</span>';
+      const notes=o.notes?`<div class="ORD_NOTES">📝 ${o.notes}</div>`:'';
+      const actBtns=o.status==='pending'
+        ?`<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="ORD_ACT_BTN confirm" onclick="updOrdSt(this,'${o.timestamp}','confirmed')">✅ Confirmer</button><button class="ORD_ACT_BTN cancel" onclick="updOrdSt(this,'${o.timestamp}','cancelled')">✕ Annuler</button></div>`
+        :'<span style="color:#ccc;font-size:12px">—</span>';
+      return`<tr class="row-${stCls}">
+        <td style="font-size:11px;color:#7A6658;font-weight:600">#${filtered.length-idx}</td>
+        <td><div class="ORD_TD_NAME">${o.name||'Client'}</div></td>
+        <td>${phoneLink}</td>
+        <td style="white-space:nowrap;font-size:12px;color:#4a3728">🕐 ${o.time||'—'}</td>
+        <td style="font-size:12px;color:#4a3728">📍 ${o.address||'Table'}</td>
+        <td><div class="ORD_TD_ITEMS">${o.items||''}${notes}</div></td>
+        <td><div class="ORD_TD_TOTAL">DZD ${(o.total||0).toLocaleString()}</div></td>
+        <td><span class="ORD_ST_BADGE ${stCls}">${stTxt}</span></td>
+        <td>${actBtns}</td>
+      </tr>`;
+    }).join('');
+    return;
+  }
+  // OV_ORDS overview cards
   const el=document.getElementById(containerId);if(!el)return;
-  let filtered=_ordFilter==='all'?os:os.filter(o=>o.status===_ordFilter);
-  filtered=filtered.slice(-limit).reverse();
-  if(!filtered.length){el.innerHTML='<div style="text-align:center;padding:32px;color:#7A6658;font-size:14px">Aucune commande trouvée 🍽</div>';return;}
+  let filtered=(_ordFilter==='all'?os:os.filter(o=>o.status===_ordFilter)).slice(-limit).reverse();
+  if(!filtered.length){el.innerHTML='<div style="text-align:center;padding:32px;color:#7A6658;font-size:14px">Aucune commande 🍽</div>';return;}
   el.innerHTML=filtered.map(o=>{
     const stCls=o.status==='pending'?'OBP':o.status==='confirmed'?'OBC':'OBK';
-    const stTxt=o.status==='pending'?'⏳ En Attente':o.status==='confirmed'?'✅ Confirmée':'❌ Annulée';
-    return`<div class="OR">
-      <div class="ORH">
-        <div><div class="ORNAM">${o.name||'Client'}</div><div class="ORTM">📞 ${o.phone||'—'} · 🕐 ${o.time||''} · 📍 ${o.address||'Table'}</div></div>
-        <span class="OBG ${stCls}">${stTxt}</span>
-      </div>
-      <div class="ORIT">🛒 ${o.items||''}</div>
-      ${o.notes?`<div style="font-size:11px;color:#C0622A;margin-bottom:8px">📝 ${o.notes}</div>`:''}
-      <div class="ORFT">
-        <div class="ORPR">DZD ${(o.total||0).toLocaleString()}</div>
-        <div class="ORBTS">
-          ${o.status==='pending'?`<button class="APB APBSM" style="background:#15803d" onclick="updOrdSt(this,'${o.timestamp}','confirmed')">✅ Confirmer</button><button class="APB APBSM APBR" onclick="updOrdSt(this,'${o.timestamp}','cancelled')">✕</button>`:''}
-        </div>
-      </div>
-    </div>`;
+    const stTxt=o.status==='pending'?'⏳ Attente':o.status==='confirmed'?'✅ Confirmée':'❌ Annulée';
+    return`<div class="OR"><div class="ORH"><div><div class="ORNAM">${o.name||'Client'}</div><div class="ORTM">📞 ${o.phone||'—'} · 🕐 ${o.time||''}</div></div><span class="OBG ${stCls}">${stTxt}</span></div><div class="ORIT">🛒 ${o.items||''}</div><div class="ORFT"><div class="ORPR">DZD ${(o.total||0).toLocaleString()}</div></div></div>`;
   }).join('');
+}
+
+/* ── CALENDAR ── */
+function renderCal(){
+  const grid=document.getElementById('CAL_GRID');if(!grid)return;
+  const y=_calDate.getFullYear(),m=_calDate.getMonth();
+  const today=new Date().toISOString().split('T')[0];
+  const firstDay=new Date(y,m,1).getDay();
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const monthNames=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const calTitle=document.querySelector('.ORD_CAL_TITLE');
+  if(calTitle)calTitle.textContent='📅 '+monthNames[m]+' '+y;
+  let html='';
+  for(let i=0;i<firstDay;i++)html+='<div class="CAL_DAY empty"></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const cls=['CAL_DAY'];
+    if(ds===today)cls.push('today');
+    if(ds===_selDate)cls.push('selected');
+    if(_datesWithOrders.has(ds))cls.push('has-orders');
+    html+='<div class="'+cls.join(' ')+'" onclick="calSelectDay(\"'+ds+'\")">'+d+'</div>';
+  }
+  grid.innerHTML=html;
+  const lbl=document.getElementById('CAL_SEL_LBL');
+  if(lbl){const sd=new Date(_selDate+'T12:00:00');lbl.textContent='Affichage: '+sd.toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});}
+}
+function calNav(dir){_calDate=new Date(_calDate.getFullYear(),_calDate.getMonth()+dir,1);renderCal();}
+function calSelectDay(ds){
+  _selDate=ds;renderCal();
+  loadAdmOrdersForDate(ds);
+  const lbl=document.getElementById('ORD_DATE_TXT');
+  const today=new Date().toISOString().split('T')[0];
+  if(lbl)lbl.textContent=ds===today?"Aujourd'hui":new Date(ds+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+async function loadAdmOrdersForDate(dk){
+  try{
+    const d=await FB.once('orders/'+dk);
+    const os=d?Object.values(d):[];
+    if(dk===new Date().toISOString().split('T')[0])updStats(os);
+    else renderDAdmOrders(os);
+  }catch{toast('⚠ Impossible de charger');}
+}
+async function loadCalendarDates(){
+  const today=new Date();_datesWithOrders.clear();
+  for(let i=0;i<31;i++){
+    const d=new Date(today);d.setDate(today.getDate()-i);
+    const dk=d.toISOString().split('T')[0];
+    try{const data=await FB.once('orders/'+dk);if(data&&Object.keys(data).length>0)_datesWithOrders.add(dk);}catch{}
+  }
+  renderCal();
 }
 
 function filterOrders(f,btn){
@@ -2044,14 +2289,31 @@ function saveCr(){
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
     closeM('OM');closeM('CM');closeAR();closeColl();
-    document.getElementById('DM').classList.remove('open');
+    const dm=document.getElementById('DM');if(dm)dm.classList.remove('open');
   }
 });
 
-// Auto-refresh orders every 8s in admin
-setInterval(()=>{
-  if(sessionActive&&document.getElementById('SEC_or')?.classList.contains('on'))loadAdmOrders();
-},8000);
+document.getElementById('DM').addEventListener('click',function(e){if(e.target===this)closeDM();});
+
+// Intersection Observer for fade-in
+const _io=new IntersectionObserver((entries)=>{entries.forEach(en=>{if(en.isIntersecting)en.target.classList.add('vis');});},{threshold:.12});
+document.querySelectorAll('.FIU').forEach(el=>_io.observe(el));
+
+// Auto-refresh orders every 8s when admin is open
+setInterval(()=>{if(sessionActive)loadAdmOrders();},8000);
+
+// Cursor
+function initCursor(){
+  const cur=document.getElementById('CUREL'),crg=document.getElementById('CRGEL');
+  if(!cur||!crg)return;
+  document.addEventListener('mousemove',e=>{cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px';crg.style.left=e.clientX+'px';crg.style.top=e.clientY+'px';});
+  document.querySelectorAll('button,a,[onclick]').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{cur.classList.add('big');crg.classList.add('big');});
+    el.addEventListener('mouseleave',()=>{cur.classList.remove('big');crg.classList.remove('big');});
+  });
+}
+
+// Scroll observer already defined above — removed duplicate stub
 </script>
 </body>
 </html>
