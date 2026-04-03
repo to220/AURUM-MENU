@@ -1168,8 +1168,19 @@ select.AI option{background:#1C0F07;color:#fff}
       const es=new EventSource(BASE+'/'+path+'.json?ns='+NS);
       let ok=false;
       const g=setTimeout(()=>{if(!ok){es.close();_poll(path,cb);}},4000);
-      es.addEventListener('put',function(e){ok=true;clearTimeout(g);try{const m=JSON.parse(e.data);if(m&&m.data!==undefined)cb(new Snap(m.data));}catch(e){}});
-      es.addEventListener('patch',function(){rest(path,'GET').then(v=>cb(new Snap(v))).catch(()=>{});});
+      es.addEventListener('put',function(e){
+        ok=true;clearTimeout(g);
+        try{const m=JSON.parse(e.data);if(m&&m.data!==undefined)cb(new Snap(m.data));}catch(e){}
+      });
+      es.addEventListener('patch',function(e){
+        // For patches, merge into last known value and fire callback
+        try{
+          const m=JSON.parse(e.data);
+          if(m&&m.data){
+            rest(path,'GET').then(v=>cb(new Snap(v))).catch(()=>{});
+          }
+        }catch(err){}
+      });
       es.onerror=function(){if(!ok){es.close();clearTimeout(g);_poll(path,cb);}};
     }catch(e){_poll(path,cb);}
   };
@@ -1356,13 +1367,11 @@ function getDImg(d){return d.img||null;}
 ═══════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded',()=>{
   buildTicker();
-  // Show loader briefly then load — 400ms is enough for the animation
-  setTimeout(()=>{
-    document.getElementById('LDR').classList.add('gone');
-    loadAll();buildAll();initSO();initCursor();updateCartBadge();
-    document.getElementById('STN_DISHES').textContent=dishes.length;
-    if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();
-  },400);
+  // Remove loader immediately, load everything at once
+  document.getElementById('LDR').classList.add('gone');
+  loadAll();buildAll();initSO();initCursor();updateCartBadge();
+  document.getElementById('STN_DISHES').textContent=dishes.length;
+  if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();
 
   // Triple-click on logo → admin
   let _lc=0,_lt=null;
@@ -1390,19 +1399,27 @@ function loadAll(){
   const dk=new Date().toISOString().split('T')[0];
   FB.on('orders/'+dk,d=>{
     if(!d)return;
+    // Build key map from live data
+    Object.entries(d).forEach(([k,v])=>{if(v&&v.timestamp)_ordKeyMap[v.timestamp]=k;});
+    const allOrders=Object.values(d).filter(Boolean);
+    _allOrders=allOrders; // always keep fresh cache
+    // Find truly new orders (not yet known)
+    let hasNew=false;
     Object.entries(d).forEach(([k,o])=>{
       if(!_knownOrderKeys.has(k)){
-        _knownOrderKeys.add(k);
-        _saveKnownKeys();
-        // Only notify admin panel — never show notifications to regular visitors
+        _knownOrderKeys.add(k);_saveKnownKeys();
+        hasNew=true;
         if(sessionActive){
           playNotifSound('order');
-          pushNotif('🛎 Nouvelle Commande!',`${o.name||'Client'}: ${(o.items||'').slice(0,60)}…`,'urgent');
-          pushNotif('📋 Commande Reçue',`${o.name||'Client'} — DZD ${(o.total||0).toLocaleString()}`,'admin');
-          loadAdmOrders();
+          pushNotif('🛎 Nouvelle Commande!',`${o.name||'Client'}: ${(o.items||'').slice(0,60)}`,'urgent');
         }
       }
     });
+    // Always update admin panel directly from this data — no extra fetch
+    if(sessionActive){
+      updStats(allOrders);
+      renderDAdmOrders(allOrders);
+    }
   });
 }
 
@@ -1795,14 +1812,14 @@ async function subOrd(){
     status:'pending',timestamp:now.toISOString(),date:dk,
     time:now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})
   };
-  try{await FB.push('orders/'+dk,order);}
-  catch{LS.set('pending_'+Date.now(),order);}
-  // Play warm chime for CLIENT confirmation
+  // ── IMMEDIATE: sound + UI feedback first, no waiting ──
   playNotifSound('client');
   cart=[];updateCartBadge();renderCartItems();closeM('CM');
-  toast("✅ Commande envoyée! Nous confirmons bientôt.");
-  // No popup notification for users - toast message is sufficient
+  toast('✅ Commande envoyée! Nous confirmons bientôt.');
   genCaptcha();
+  // ── BACKGROUND: push to Firebase / local fallback ──
+  try{await FB.push('orders/'+dk,order);}
+  catch{LS.set('pending_'+Date.now(),order);}
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -2071,14 +2088,10 @@ function showDash(){
   document.getElementById('APD').classList.add('show');
   sessionActive=true;
   _calDate=new Date();_selDate=new Date().toISOString().split('T')[0];
-  // Render immediately with local data
   renderDAdm();
-  const localDk=_selDate;
-  const localOrders=LS.get('orders/'+localDk);
-  if(localOrders&&typeof localOrders==='object'){
-    const os=Object.values(localOrders).filter(Boolean);
-    updStats(os);renderDAdmOrders(os);
-  }else{updStats([]);renderDAdmOrders([]);}
+  // Show cached orders instantly
+  if(_allOrders.length){updStats(_allOrders);renderDAdmOrders(_allOrders);}
+  else{updStats([]);renderDAdmOrders([]);}
   renderCal();
   const stD=document.getElementById('ST_D');if(stD)stD.textContent=dishes.length;
   const lbl=document.getElementById('DISH_COUNT_LBL');if(lbl)lbl.textContent=dishes.length;
@@ -2092,9 +2105,9 @@ function showDash(){
   if(hero.t1){const e=document.getElementById('S_T1');if(e)e.value=hero.t1;}
   if(hero.t2){const e=document.getElementById('S_T2');if(e)e.value=hero.t2;}
   if(hero.sub){const e=document.getElementById('S_SUB');if(e)e.value=hero.sub;}
-  // Fetch fresh data in background without blocking UI
-  setTimeout(()=>{loadAdmOrders();},50);
-  setTimeout(()=>{loadCalendarDates();},300);
+  // Fresh fetch in background
+  loadAdmOrders();
+  loadCalendarDates();
 }
 
 function doLogout(){
